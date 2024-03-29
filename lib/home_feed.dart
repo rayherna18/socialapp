@@ -1,18 +1,46 @@
 import 'package:flutter/material.dart';
-
-import 'post.dart';
+import 'user_profile.dart';
+import 'view_post.dart';
+import 'add_post.dart';
 
 class SocialMediaPost {
   final String username;
+  final String handle;
   final String profileImageUrl;
-  final DateTime postTimeStamp;
+  DateTime postTimeStamp;
   final String postContent;
   final String postImageUrl;
   int? numLikes;
   int? numComments;
 
+  String getPostedTime() {
+    final timeDifference = DateTime.now().difference(postTimeStamp);
+    if (timeDifference.inDays > 0) {
+      return '${timeDifference.inDays}d';
+    } else if (timeDifference.inHours > 0) {
+      return '${timeDifference.inHours}h';
+    } else if (timeDifference.inMinutes > 0) {
+      return '${timeDifference.inMinutes}m';
+    } else {
+      return '${timeDifference.inSeconds}s';
+    }
+  }
+
+  String getAMPM() {
+    return postTimeStamp.hour < 12 ? 'AM' : 'PM';
+  }
+
+  String getTimeMMHH() {
+    return '${postTimeStamp.hour}:${postTimeStamp.minute}${getAMPM()}';
+  }
+
+  String getDateMMDDYY() {
+    return '${postTimeStamp.month}/${postTimeStamp.day}/${postTimeStamp.year}';
+  }
+
   SocialMediaPost({
     required this.username,
+    required this.handle,
     required this.profileImageUrl,
     required this.postTimeStamp,
     required this.postContent,
@@ -41,12 +69,27 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
     return Card(
       margin: const EdgeInsets.all(8.0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(widget.post.profileImageUrl),
-          ),
-          title: Text(widget.post.username),
-          subtitle: Text(widget.post.postTimeStamp.toString()),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserProfile(),
+              ),
+            );
+          },
+          child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(widget.post.profileImageUrl),
+              ),
+              title: Row(
+                children: [
+                  Text(widget.post.username),
+                  Text(' • '),
+                  Text(widget.post.getPostedTime()),
+                ],
+              ),
+              subtitle: Text(widget.post.handle)),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -64,7 +107,7 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
           ),
         ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Row(
               children: [
@@ -120,7 +163,17 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
               )),
               const SizedBox(width: 8.0),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Add code that uploads comment to DB.
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          SocialMediaPostScreen(post: widget.post),
+                    ),
+                  );
+                },
                 child: const Text('Comment'),
               ),
             ],
@@ -143,6 +196,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     // to be replaced with actual data from DB
     SocialMediaPost(
       username: 'Alice',
+      handle: '@alice',
       profileImageUrl: 'https://via.placeholder.com/150',
       postTimeStamp: DateTime.now(),
       postContent: 'This is my first post!',
@@ -150,6 +204,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     ),
     SocialMediaPost(
       username: 'Bob',
+      handle: '@bob',
       profileImageUrl: 'https://via.placeholder.com/150',
       postTimeStamp: DateTime.now(),
       postContent: 'This is my first post!',
@@ -160,16 +215,39 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Feed'),
-        centerTitle: true,
-      ),
-      body: ListView.builder(
-        itemCount: feedContent.length,
-        itemBuilder: (context, index) {
-          return SocialMediaPostCard(post: feedContent[index]);
-        },
-      ),
-    );
+        appBar: centralAppBar(),
+        body: ListView.builder(
+          itemCount: feedContent.length,
+          itemBuilder: (context, index) {
+            return SocialMediaPostCard(post: feedContent[index]);
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddPostScreen(),
+              ),
+            );
+          },
+          child: const Icon(Icons.add),
+        ));
   }
+}
+
+AppBar centralAppBar() {
+  return AppBar(
+    title: const Text('Feed'),
+    centerTitle: true,
+    actions: [
+      GestureDetector(
+        onTap: () {},
+        child: const CircleAvatar(
+          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+        ),
+      ),
+      const SizedBox(width: 16.0),
+    ],
+  );
 }
