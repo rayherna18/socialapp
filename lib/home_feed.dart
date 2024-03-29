@@ -215,7 +215,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: centralAppBar(),
+        appBar: centralAppBar(context),
         body: ListView.builder(
           itemCount: feedContent.length,
           itemBuilder: (context, index) {
@@ -236,13 +236,20 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   }
 }
 
-AppBar centralAppBar() {
+AppBar centralAppBar(BuildContext context) {
   return AppBar(
     title: const Text('Feed'),
     centerTitle: true,
     actions: [
       GestureDetector(
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserProfile(),
+            ),
+          );
+        },
         child: const CircleAvatar(
           backgroundImage: NetworkImage('https://via.placeholder.com/150'),
         ),
