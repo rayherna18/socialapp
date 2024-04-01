@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:socialapp/home_feed.dart';
 import 'view_post.dart';
 import 'home_feed.dart';
+import 'user_profile.dart';
 
 Map<String, dynamic> userData = {
   // Replace with Firebase Auth user data
@@ -46,11 +47,11 @@ class _AddContentScreenState extends State<AddContentScreen> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 0.0),
+            padding: EdgeInsets.fromLTRB(20.0, 20, 20.0, 20.0),
             child: Column(
               children: [
                 if (widget.type == "Comment" && widget.post != null)
-                  _buildPostPreview(widget.post!),
+                  _buildPostPreview(widget.post!, context: context),
                 TextField(
                   controller: _urlController,
                   maxLines: null,
@@ -152,13 +153,18 @@ class _AddContentScreenState extends State<AddContentScreen> {
   }
 }
 
-Widget _buildPostPreview(SocialMediaPost post) {
+Widget _buildPostPreview(SocialMediaPost post, {BuildContext? context}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       GestureDetector(
         onTap: () {
-          // Navigate to user profile
+          Navigator.push(
+            context!,
+            MaterialPageRoute(
+              builder: (context) => UserProfile(),
+            ),
+          );
         },
         child: ListTile(
           leading: CircleAvatar(
@@ -181,19 +187,25 @@ Widget _buildPostPreview(SocialMediaPost post) {
               ),
             ),
           SizedBox(height: 8.0),
-          Text(post.postContent),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(post.postContent),
+          ),
           SizedBox(height: 8.0),
-          Row(
-            children: [
-              Text(post.getTimeMMHH()),
-              Text(' • '),
-              Text(post.getDateMMDDYY()),
-            ],
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Text(post.getTimeMMHH()),
+                Text(' • '),
+                Text(post.getDateMMDDYY()),
+              ],
+            ),
           ),
         ],
       ),
       Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
             children: [

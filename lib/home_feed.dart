@@ -87,6 +87,12 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
   Icon unLikedIcon = const Icon(Icons.star_border_rounded);
   Icon likedIcon = const Icon(Icons.star, color: Colors.yellow);
 
+  @override
+  void initState() {
+    super.initState();
+    isLiked = widget.isLiked;
+  }
+
   TextEditingController _commentController = TextEditingController();
 
   @override
@@ -123,8 +129,14 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.0),
-                child: Image.network(widget.post.postImageUrl,
-                    width: double.infinity, fit: BoxFit.cover),
+                child: widget.post.postImageUrl.isNotEmpty
+                    ? Image.network(widget.post.postImageUrl,
+                        width: double.infinity, fit: BoxFit.cover)
+                    : Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: Colors.grey,
+                      ),
               ),
               const SizedBox(height: 8.0),
               Padding(
@@ -248,11 +260,12 @@ class HomeFeedScreen extends StatefulWidget {
 
 class _HomeFeedState extends State<HomeFeedScreen> {
   late Stream<QuerySnapshot> _postStream;
-  Map<String, bool> likedPosts = {};
+  late Map<String, bool> likedPosts;
 
   @override
   void initState() {
     super.initState();
+    likedPosts = {};
     _postStream = FirebaseFirestore.instance.collection('posts').snapshots();
   }
 
@@ -303,6 +316,8 @@ class _HomeFeedState extends State<HomeFeedScreen> {
               itemBuilder: (context, index) {
                 final postData = posts[index].data() as Map<String, dynamic>;
 
+                final isLiked = likedPosts[posts[index].id] ?? false;
+
                 return FutureBuilder(
                   future: getUserData(postData['postedBy']),
                   builder: (context,
@@ -324,14 +339,14 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                       numComments: postData['numComments'] ?? 0,
                     );
 
-                    final postId = posts[index].id;
-                    final isLiked = likedPosts[postId] ?? false;
+                    //  final postId = posts[index].id;
+                    //  final isLiked = likedPosts[posts[index].id] ?? false;
 
                     return SocialMediaPostCard(
                         post: post,
                         postId: posts[index].id,
                         isLiked: isLiked,
-                        onLikePressed: () => toggleLike(postId));
+                        onLikePressed: () => toggleLike(posts[index].id));
                   },
                 );
               },
