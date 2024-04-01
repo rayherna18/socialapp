@@ -222,10 +222,7 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post'),
-        centerTitle: true,
-      ),
+      appBar: centralAppBar(context, 'Post'),
       body: StreamBuilder(
           stream: _commentStream,
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {

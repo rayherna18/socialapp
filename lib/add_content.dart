@@ -41,88 +41,110 @@ class _AddContentScreenState extends State<AddContentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('New ${widget.type}'),
-        centerTitle: true,
-      ),
+      appBar:
+          centralAppBar(context, 'New ${widget.type}'), // centralAppBar(context
       body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 0.0),
-          child: Column(
-            children: [
-              if (widget.type == "Comment" && widget.post != null)
-                _buildPostPreview(widget.post!),
-              TextField(
-                controller: _urlController,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                textAlign: TextAlign.start,
-                decoration: InputDecoration(
-                  labelText: 'Image URL',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
-                ),
-              ),
-              SizedBox(height: 25.0),
-              TextField(
-                controller: _descController,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                textAlign: TextAlign.start,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  CollectionReference commentsRef = FirebaseFirestore.instance
-                      .collection('posts')
-                      .doc(widget.postId)
-                      .collection('comments');
-
-                  await commentsRef.add({
-                    'commentedBy': userData['id'],
-                    'textContent': _descController.text,
-                    'imageContentURL': _urlController.text,
-                    'numLikes': 0,
-                    'relatedPost': widget.postId,
-                    'timeCommented': Timestamp.now(),
-                  });
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SocialMediaPostScreen(
-                          post: widget.post!, postId: widget.postId!),
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(20.0, 0, 20.0, 0.0),
+            child: Column(
+              children: [
+                if (widget.type == "Comment" && widget.post != null)
+                  _buildPostPreview(widget.post!),
+                TextField(
+                  controller: _urlController,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textAlign: TextAlign.start,
+                  decoration: InputDecoration(
+                    labelText: 'Image URL',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                  );
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
+                  ),
+                ),
+                SizedBox(height: 25.0),
+                TextField(
+                  controller: _descController,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textAlign: TextAlign.start,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
+                  ),
+                ),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (widget.type == "Comment") {
+                      CollectionReference commentsRef = FirebaseFirestore
+                          .instance
+                          .collection('posts')
+                          .doc(widget.postId)
+                          .collection('comments');
 
-                  try {
-                    DocumentReference postRef = FirebaseFirestore.instance
-                        .collection('posts')
-                        .doc(widget.postId);
+                      await commentsRef.add({
+                        'commentedBy': userData['id'],
+                        'textContent': _descController.text,
+                        'imageContentURL': _urlController.text,
+                        'numLikes': 0,
+                        'relatedPost': widget.postId,
+                        'timeCommented': Timestamp.now(),
+                      });
 
-                    await postRef
-                        .update({'numComments': FieldValue.increment(1)});
-                  } catch (e) {
-                    print('Error updating comments: $e');
-                  }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SocialMediaPostScreen(
+                              post: widget.post!, postId: widget.postId!),
+                        ),
+                      );
 
-                  _urlController.clear();
-                  _descController.clear();
-                },
-                child: Text('Add ${widget.type}'),
-              ),
-            ],
+                      try {
+                        DocumentReference postRef = FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(widget.postId);
+
+                        await postRef
+                            .update({'numComments': FieldValue.increment(1)});
+                      } catch (e) {
+                        print('Error updating comments: $e');
+                      }
+                    } else {
+                      CollectionReference postsRef =
+                          FirebaseFirestore.instance.collection('posts');
+
+                      await postsRef.add({
+                        'postedBy': userData['id'],
+                        'textContent': _descController.text,
+                        'imageContentURL': _urlController.text,
+                        'numLikes': 0,
+                        'numComments': 0,
+                        'timePosted': Timestamp.now(),
+                      });
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeFeedScreen(),
+                        ),
+                      );
+                    }
+
+                    _urlController.clear();
+                    _descController.clear();
+                  },
+                  child: Text('Add ${widget.type}'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

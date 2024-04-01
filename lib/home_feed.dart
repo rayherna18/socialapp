@@ -127,7 +127,10 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                     width: double.infinity, fit: BoxFit.cover),
               ),
               const SizedBox(height: 8.0),
-              Text(widget.post.postContent),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(widget.post.postContent),
+              ),
             ],
           ),
         ),
@@ -282,7 +285,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: centralAppBar(context),
+        appBar: centralAppBar(context, 'Home Feed'),
         body: StreamBuilder(
           stream: _postStream,
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -349,9 +352,9 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   }
 }
 
-AppBar centralAppBar(BuildContext context) {
+AppBar centralAppBar(BuildContext context, String title) {
   return AppBar(
-    title: const Text('Feed'),
+    title: Text(title),
     centerTitle: true,
     actions: [
       GestureDetector(
