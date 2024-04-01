@@ -196,7 +196,7 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                       backgroundImage:
                           NetworkImage(widget.post.profileImageUrl),
                     ),
-                    title: Text(widget.post.username),
+                    title: Text(widget.post.name),
                     subtitle: Text(widget.post.handle),
                   ),
                 ),

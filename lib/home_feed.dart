@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'user_profile.dart';
 import 'view_post.dart';
 import 'add_post.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SocialMediaPost {
-  final String username;
+  final String name;
   final String handle;
   final String profileImageUrl;
   DateTime postTimeStamp;
@@ -39,7 +40,7 @@ class SocialMediaPost {
   }
 
   SocialMediaPost({
-    required this.username,
+    required this.name,
     required this.handle,
     required this.profileImageUrl,
     required this.postTimeStamp,
@@ -53,7 +54,7 @@ class SocialMediaPost {
 class SocialMediaPostCard extends StatefulWidget {
   final SocialMediaPost post;
 
-  const SocialMediaPostCard({super.key, required this.post});
+  const SocialMediaPostCard({Key? key, required this.post}) : super(key: key);
 
   @override
   State<SocialMediaPostCard> createState() => _SocialMediaPostCardState();
@@ -61,8 +62,8 @@ class SocialMediaPostCard extends StatefulWidget {
 
 class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
   bool isLiked = false;
-  Icon unLikedIcon = const Icon(Icons.favorite_border);
-  Icon likedIcon = const Icon(Icons.favorite, color: Colors.red);
+  Icon unLikedIcon = const Icon(Icons.star_border_rounded);
+  Icon likedIcon = const Icon(Icons.star, color: Colors.yellow);
 
   @override
   Widget build(BuildContext context) {
@@ -84,12 +85,12 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
               ),
               title: Row(
                 children: [
-                  Text(widget.post.username),
+                  Text(widget.post.name),
                   Text(' • '),
                   Text(widget.post.getPostedTime()),
                 ],
               ),
-              subtitle: Text(widget.post.handle)),
+              subtitle: Text("@${widget.post.handle}")),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -185,17 +186,35 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
 }
 
 class HomeFeedScreen extends StatefulWidget {
-  const HomeFeedScreen({super.key});
+  const HomeFeedScreen({Key? key}) : super(key: key);
 
   @override
   _HomeFeedState createState() => _HomeFeedState();
 }
 
 class _HomeFeedState extends State<HomeFeedScreen> {
-  final List<SocialMediaPost> feedContent = [
+  late Stream<QuerySnapshot> _postStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _postStream = FirebaseFirestore.instance.collection('posts').snapshots();
+  }
+
+  Future<Map<String, dynamic>> getUserData(String userID) async {
+    final userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userID).get();
+    if (userDoc.exists) {
+      return userDoc.data() as Map<String, dynamic>;
+    } else {
+      return {};
+    }
+  }
+
+  /* final List<SocialMediaPost> feedContent = [
     // to be replaced with actual data from DB
     SocialMediaPost(
-      username: 'Alice',
+      name: 'Alice',
       handle: '@alice',
       profileImageUrl: 'https://via.placeholder.com/150',
       postTimeStamp: DateTime.now(),
@@ -203,17 +222,90 @@ class _HomeFeedState extends State<HomeFeedScreen> {
       postImageUrl: 'https://via.placeholder.com/300',
     ),
     SocialMediaPost(
-      username: 'Bob',
+      name: 'Bob',
       handle: '@bob',
       profileImageUrl: 'https://via.placeholder.com/150',
       postTimeStamp: DateTime.now(),
       postContent: 'This is my first post!',
       postImageUrl: 'https://via.placeholder.com/300',
     ),
-  ];
+  ]; */
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: centralAppBar(context),
+        body: StreamBuilder(
+          stream: _postStream,
+          builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return const Center(child: Text('Error loading posts'));
+            }
+
+            final posts = snapshot.data!.docs ?? [];
+
+            return ListView.builder(
+              itemCount: posts.length,
+              itemBuilder: (context, index) {
+                final postData = posts[index].data() as Map<String, dynamic>;
+
+                return FutureBuilder(
+                  future: getUserData(postData['postedBy']),
+                  builder: (context,
+                      AsyncSnapshot<Map<String, dynamic>> userDataSnapshot) {
+                    if (userDataSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (userDataSnapshot.hasError) {
+                      return const Center(
+                          child: Text('Error loading user data'));
+                    }
+
+                    final userData = userDataSnapshot.data ?? {};
+                    final username =
+                        '${userData['nameFirst']} ${userData['nameLast']}';
+                    final handle = userData['handle'];
+                    final profileImageUrl = userData['pfpURL'];
+
+                    final post = SocialMediaPost(
+                      name: username,
+                      handle: handle ?? '',
+                      profileImageUrl: profileImageUrl ?? '',
+                      postTimeStamp:
+                          (postData['timePosted'] as Timestamp).toDate(),
+                      postContent: postData['textContent'] ?? '',
+                      postImageUrl: postData['imageContentURL'] ?? '',
+                      numLikes: postData['numLikes'] ?? 0,
+                      numComments: postData['numComments'] ?? 0,
+                    );
+
+                    return SocialMediaPostCard(post: post);
+                  },
+                );
+              },
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddPostScreen(),
+              ),
+            );
+          },
+          child: const Icon(Icons.add),
+        ));
+  }
+}
+
+/*
+Widget build(BuildContext context) {
     return Scaffold(
         appBar: centralAppBar(context),
         body: ListView.builder(
@@ -235,6 +327,8 @@ class _HomeFeedState extends State<HomeFeedScreen> {
         ));
   }
 }
+
+*/
 
 AppBar centralAppBar(BuildContext context) {
   return AppBar(

@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:socialapp/firebase_options.dart';
 import 'home_feed.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const MyApp());
+  } catch (e) {
+    print('Error: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
