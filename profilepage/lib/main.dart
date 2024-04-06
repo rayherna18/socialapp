@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       ),
       home: UserProfile(
           title:
-              'User Profile'), //it launches UserProfile class from the profilePage.dart file
+              'ProfileUsernameHere'), //it launches UserProfile class from the profilePage.dart file
     );
   }
 }
