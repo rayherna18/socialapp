@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:socialapp/home_feed.dart';
 import 'view_post.dart';
 import 'home_feed.dart';
 import 'user_profile.dart';
@@ -20,8 +19,10 @@ class AddContentScreen extends StatefulWidget {
   final SocialMediaPost? post;
   final String? postId;
   final String type;
+  final bool? isLiked;
 
-  const AddContentScreen({Key? key, this.post, this.postId, required this.type})
+  const AddContentScreen(
+      {Key? key, this.post, this.postId, required this.type, this.isLiked})
       : super(key: key);
 
   @override
@@ -31,8 +32,14 @@ class AddContentScreen extends StatefulWidget {
 class _AddContentScreenState extends State<AddContentScreen> {
   TextEditingController _urlController = TextEditingController();
   TextEditingController _descController = TextEditingController();
+  late bool isLiked;
 
   @override
+  void initState() {
+    super.initState();
+    isLiked = widget.isLiked ?? false;
+  }
+
   void dispose() {
     _urlController.dispose();
     _descController.dispose();
@@ -47,11 +54,17 @@ class _AddContentScreenState extends State<AddContentScreen> {
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(20.0, 20, 20.0, 20.0),
+            padding: const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 20.0),
             child: Column(
               children: [
                 if (widget.type == "Comment" && widget.post != null)
-                  _buildPostPreview(widget.post!, context: context),
+                  _buildPostPreview(widget.post!, isLiked, context: context),
+                Divider(
+                  // Add a divider between the post preview and the form
+                  thickness: 1.0,
+                  color: Colors.grey[500],
+                ),
+                const SizedBox(height: 20.0),
                 TextField(
                   controller: _urlController,
                   maxLines: null,
@@ -104,31 +117,31 @@ class _AddContentScreenState extends State<AddContentScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => SocialMediaPostScreen(
-                              post: widget.post!, postId: widget.postId!),
+                            post: widget.post!,
+                            postId: widget.postId!,
+                          ),
                         ),
                       );
-
-                      try {
-                        DocumentReference postRef = FirebaseFirestore.instance
-                            .collection('posts')
-                            .doc(widget.postId);
-
-                        await postRef
-                            .update({'numComments': FieldValue.increment(1)});
-                      } catch (e) {
-                        print('Error updating comments: $e');
-                      }
                     } else {
                       CollectionReference postsRef =
                           FirebaseFirestore.instance.collection('posts');
 
-                      await postsRef.add({
+                      DocumentReference newPostRef = await postsRef.add({
                         'postedBy': userData['id'],
                         'textContent': _descController.text,
                         'imageContentURL': _urlController.text,
                         'numLikes': 0,
                         'numComments': 0,
                         'timePosted': Timestamp.now(),
+                      });
+
+                      String newPostId = newPostRef.id;
+
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userData['id'])
+                          .update({
+                        'postList': FieldValue.arrayUnion([newPostId])
                       });
 
                       Navigator.push(
@@ -153,7 +166,8 @@ class _AddContentScreenState extends State<AddContentScreen> {
   }
 }
 
-Widget _buildPostPreview(SocialMediaPost post, {BuildContext? context}) {
+Widget _buildPostPreview(SocialMediaPost post, bool isLiked,
+    {BuildContext? context}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -162,7 +176,7 @@ Widget _buildPostPreview(SocialMediaPost post, {BuildContext? context}) {
           Navigator.push(
             context!,
             MaterialPageRoute(
-              builder: (context) => UserProfile(),
+              builder: (context) => UserProfileScreen(),
             ),
           );
         },
@@ -177,7 +191,7 @@ Widget _buildPostPreview(SocialMediaPost post, {BuildContext? context}) {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (post.postContent.isNotEmpty)
+          if (post.postImageUrl.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(10.0),
               child: Image.network(
@@ -188,37 +202,35 @@ Widget _buildPostPreview(SocialMediaPost post, {BuildContext? context}) {
             ),
           SizedBox(height: 8.0),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
             child: Text(post.postContent),
           ),
           SizedBox(height: 8.0),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Text(post.getTimeMMHH()),
-                Text(' • '),
-                Text(post.getDateMMDDYY()),
-              ],
-            ),
-          ),
         ],
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.favorite_border),
-                onPressed: () {
-                  // Handle like button press
-                },
-              ),
-              Text(post.numLikes.toString()),
-            ],
+          IconButton(
+            icon: isLiked
+                ? Icon(Icons.star, color: Colors.yellow)
+                : Icon(Icons.star_border),
+            onPressed: () {
+              // Handle like button press
+            },
           ),
+          Text(post.numLikes.toString()),
         ],
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
+        child: Row(
+          children: [
+            Text(post.getTimeMMHH()),
+            Text(' • '),
+            Text(post.getDateMMDDYY()),
+          ],
+        ),
       ),
     ],
   );

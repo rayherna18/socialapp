@@ -46,9 +46,7 @@ class Comment {
       required this.commentImageUrl,
       required Timestamp commentTimeStamp,
       required this.commentLikes})
-      : commentTimeStamp = DateTime.fromMillisecondsSinceEpoch(
-          commentTimeStamp.millisecondsSinceEpoch,
-        );
+      : commentTimeStamp = commentTimeStamp.toDate();
 }
 
 class CommentTile extends StatefulWidget {
@@ -74,7 +72,7 @@ class _CommentTileState extends State<CommentTile> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfile(),
+                builder: (context) => UserProfileScreen(),
               ),
             );
           },
@@ -93,13 +91,10 @@ class _CommentTileState extends State<CommentTile> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(widget.comment.commentContent)),
               const SizedBox(height: 8.0),
               if (widget.comment.commentImageUrl.isNotEmpty)
                 ClipRRect(
@@ -107,6 +102,12 @@ class _CommentTileState extends State<CommentTile> {
                   child: Image.network(widget.comment.commentImageUrl,
                       width: double.infinity, fit: BoxFit.cover),
                 ),
+              Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 0, 0),
+                    child: Text(widget.comment.commentContent),
+                  )),
             ],
           ),
         ),
@@ -152,20 +153,12 @@ class _CommentTileState extends State<CommentTile> {
   }
 }
 
-/*
-children: [
-              Text(comment.commentContent),
-              Image.network(comment.commentImageUrl),
-              Text(comment.commentTimeStamp.toString()),
-            ],
-*/
-
 class SocialMediaPostScreen extends StatefulWidget {
   final SocialMediaPost post;
   final String postId;
-
+  final bool? isLiked;
   const SocialMediaPostScreen(
-      {Key? key, required this.post, required this.postId})
+      {Key? key, required this.post, required this.postId, this.isLiked})
       : super(key: key);
 
   @override
@@ -173,20 +166,51 @@ class SocialMediaPostScreen extends StatefulWidget {
 }
 
 class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
-  bool isLiked = false;
-  Icon unLikedIcon = const Icon(Icons.favorite_border);
-  Icon likedIcon = const Icon(Icons.favorite, color: Colors.red);
+  late bool isPostLiked;
+  Icon unLikedIcon = const Icon(Icons.star_border_rounded);
+  Icon likedIcon = const Icon(Icons.star, color: Colors.yellow);
 
   late Stream<QuerySnapshot> _commentStream;
 
   @override
   void initState() {
     super.initState();
+    isPostLiked = widget.isLiked ?? false;
     _commentStream = FirebaseFirestore.instance
         .collection('posts')
         .doc(widget.postId)
         .collection('comments')
         .snapshots();
+  }
+
+  Future<void> togglePostLike() async {
+    try {
+      final postRef =
+          FirebaseFirestore.instance.collection('posts').doc(widget.postId);
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(userData['id']);
+
+      setState(() {
+        isPostLiked = !isPostLiked;
+        if (isPostLiked) {
+          widget.post.numLikes = widget.post.numLikes! + 1;
+        } else {
+          if (widget.post.numLikes! > 0) {
+            widget.post.numLikes = widget.post.numLikes! - 1;
+          }
+        }
+      });
+
+      if (isPostLiked) {
+        await postRef.update({'numLikes': FieldValue.increment(1)});
+      } else {
+        await postRef.update({'numLikes': FieldValue.increment(-1)});
+      }
+
+      await userRef.update({'likedList': userData['likedList']});
+    } catch (e) {
+      print('Error updating likes: $e');
+    }
   }
 
   Future<Comment?> fetchCommenterData(
@@ -248,7 +272,7 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => UserProfile(),
+                              builder: (context) => UserProfileScreen(),
                             ),
                           );
                         },
@@ -263,26 +287,22 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (widget.post.postContent.isNotEmpty)
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(10.0),
-                                child: Image.network(widget.post.postImageUrl,
-                                    width: double.infinity, fit: BoxFit.cover),
+                                child: widget.post.postImageUrl.isEmpty
+                                    ? const SizedBox.shrink()
+                                    : Image.network(widget.post.postImageUrl,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover),
                               ),
                             const SizedBox(height: 8.0),
                             Text(widget.post.postContent),
                             const SizedBox(height: 8.0),
-                            Row(
-                              children: [
-                                Text(widget.post.getTimeMMHH()),
-                                Text(' • '),
-                                Text(widget.post.getDateMMDDYY()),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -293,32 +313,9 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                           Row(
                             children: [
                               IconButton(
-                                icon: isLiked ? likedIcon : unLikedIcon,
-                                color: isLiked ? Colors.red : null,
-                                onPressed: () async {
-                                  setState(() {
-                                    isLiked = !isLiked;
-                                    if (isLiked) {
-                                      widget.post.numLikes =
-                                          widget.post.numLikes! + 1;
-                                    } else {
-                                      widget.post.numLikes =
-                                          widget.post.numLikes! - 1;
-                                    }
-                                  });
-
-                                  try {
-                                    DocumentReference postRef =
-                                        FirebaseFirestore.instance
-                                            .collection('posts')
-                                            .doc(widget.postId);
-
-                                    await postRef.update(
-                                        {'numLikes': widget.post.numLikes});
-                                  } catch (e) {
-                                    print('Error updating likes: $e');
-                                  }
-                                },
+                                icon: isPostLiked ? likedIcon : unLikedIcon,
+                                color: isPostLiked ? Colors.red : null,
+                                onPressed: togglePostLike,
                               ),
                               Text(widget.post.numLikes.toString()),
                             ],
@@ -344,6 +341,16 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                             ],
                           ),
                         ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                        child: Row(
+                          children: [
+                            Text(widget.post.getTimeMMHH()),
+                            Text(' • '),
+                            Text(widget.post.getDateMMDDYY()),
+                          ],
+                        ),
                       ),
                     ],
                   );

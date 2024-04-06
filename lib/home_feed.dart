@@ -1,9 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
 import 'user_profile.dart';
 import 'view_post.dart';
-import 'add_content.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'nav_bar.dart';
 
 Map<String, dynamic> userData = {
   'nameFirst': 'Raymond',
@@ -59,15 +60,14 @@ class SocialMediaPost {
     required this.postImageUrl,
     this.numLikes = 0,
     this.numComments = 0,
-  }) : postTimeStamp = DateTime.fromMillisecondsSinceEpoch(
-          postTimeStamp.millisecondsSinceEpoch,
-        );
+  }) : postTimeStamp = postTimeStamp.toDate();
 }
 
 class SocialMediaPostCard extends StatefulWidget {
   final SocialMediaPost post;
   final String postId;
   final bool isLiked;
+  final int numComments;
   final VoidCallback onLikePressed;
 
   const SocialMediaPostCard(
@@ -75,6 +75,7 @@ class SocialMediaPostCard extends StatefulWidget {
       required this.post,
       required this.postId,
       required this.isLiked,
+      required this.numComments,
       required this.onLikePressed})
       : super(key: key);
 
@@ -83,7 +84,8 @@ class SocialMediaPostCard extends StatefulWidget {
 }
 
 class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
-  bool isLiked = false;
+  late bool isLiked;
+  bool isButtonDisabled = false;
   Icon unLikedIcon = const Icon(Icons.star_border_rounded);
   Icon likedIcon = const Icon(Icons.star, color: Colors.yellow);
 
@@ -97,6 +99,7 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
 
   @override
   Widget build(BuildContext context) {
+    bool isLiked = widget.isLiked;
     return Card(
       margin: const EdgeInsets.all(8.0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -105,7 +108,7 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfile(),
+                builder: (context) => UserProfileScreen(),
               ),
             );
           },
@@ -132,15 +135,11 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                 child: widget.post.postImageUrl.isNotEmpty
                     ? Image.network(widget.post.postImageUrl,
                         width: double.infinity, fit: BoxFit.cover)
-                    : Container(
-                        width: double.infinity,
-                        height: 200,
-                        color: Colors.grey,
-                      ),
+                    : const SizedBox.shrink(),
               ),
               const SizedBox(height: 8.0),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.fromLTRB(5, 5, 0, 0),
                 child: Text(widget.post.postContent),
               ),
             ],
@@ -154,10 +153,25 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                 IconButton(
                   icon: isLiked ? likedIcon : unLikedIcon,
                   color: isLiked ? Colors.red : null,
-                  onPressed: () {
+                  onPressed: () async {
+                    if (isButtonDisabled) {
+                      return;
+                    }
+
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+
                     setState(() {
                       isLiked = !isLiked;
                     });
+
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      setState(() {
+                        isButtonDisabled = false;
+                      });
+                    });
+
                     widget.onLikePressed();
                   },
                 ),
@@ -173,7 +187,9 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => SocialMediaPostScreen(
-                            post: widget.post, postId: widget.postId),
+                          post: widget.post,
+                          postId: widget.postId,
+                        ),
                       ),
                     );
                   },
@@ -224,7 +240,9 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => SocialMediaPostScreen(
-                          post: widget.post, postId: widget.postId),
+                          post: widget.post,
+                          postId: widget.postId,
+                          isLiked: isLiked),
                     ),
                   );
 
@@ -260,14 +278,48 @@ class HomeFeedScreen extends StatefulWidget {
 
 class _HomeFeedState extends State<HomeFeedScreen> {
   late Stream<QuerySnapshot> _postStream;
-  late Map<String, bool> likedPosts;
+  late Map<String, bool> likedPosts = {};
 
   @override
   void initState() {
     super.initState();
-    likedPosts = {};
+    _fetchLikedPosts();
     _postStream = FirebaseFirestore.instance.collection('posts').snapshots();
+    // _initSharedPreferences();
+    //_initSharedPreferences().then((_) {
+    // For resetting all post likes
+    //  resetAllPostLikes();
+    // });
   }
+
+  Future<void> _fetchLikedPosts() async {
+    try {
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userData['id'])
+          .get();
+      if (userSnapshot.exists) {
+        setState(() {
+          likedPosts =
+              (userSnapshot.data() as Map<String, dynamic>)['likedList'] ?? {};
+        });
+      }
+    } catch (e) {
+      print('Error fetching liked posts: $e');
+    }
+  }
+
+  /* Future<void> resetAllPostLikes() async {
+    // For resetting all post likes
+    try {
+      likedPosts.forEach((postId, _) {
+        likedPosts[postId] = false;
+        _prefs.setBool(postId, false);
+      });
+    } catch (e) {
+      print('Error resetting post likes: $e');
+    }
+  } */
 
   Future<Map<String, dynamic>> getUserData(String userID) async {
     final userDoc =
@@ -279,17 +331,49 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     }
   }
 
-  Future<void> toggleLike(String postId) async {
-    setState(() {
-      likedPosts[postId] = !likedPosts[postId]!;
-    });
-
+  Future<void> togglePostLike(String postId) async {
     try {
       DocumentReference postRef =
           FirebaseFirestore.instance.collection('posts').doc(postId);
 
-      await postRef.update(
-          {'numLikes': FieldValue.increment(likedPosts[postId]! ? 1 : -1)});
+      DocumentSnapshot postSnapshot = await postRef.get();
+      Map<String, dynamic> postData =
+          postSnapshot.data() as Map<String, dynamic>;
+
+      // int currentLikes = postData['numLikes'] ?? 0;
+      bool isCurrentlyLiked = likedPosts.containsKey(postId);
+
+      if (!isCurrentlyLiked) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userData['id'])
+            .update({
+          'likedList': FieldValue.arrayUnion([postId])
+        });
+      } else {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userData['id'])
+            .update({
+          'likedList': FieldValue.arrayRemove([postId])
+        });
+      }
+
+      setState(() {
+        if (!isCurrentlyLiked) {
+          likedPosts[postId] = true;
+        } else {
+          likedPosts.remove(postId);
+        }
+      });
+
+      if (!isCurrentlyLiked) {
+        await postRef.update({'numLikes': FieldValue.increment(1)});
+      } else {
+        if (postData['numLikes'] > 0) {
+          await postRef.update({'numLikes': FieldValue.increment(-1)});
+        }
+      }
     } catch (e) {
       print('Error updating likes: $e');
     }
@@ -303,7 +387,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
           stream: _postStream,
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: Text('Loading...'));
             }
             if (snapshot.hasError) {
               return const Center(child: Text('Error loading posts'));
@@ -339,14 +423,35 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                       numComments: postData['numComments'] ?? 0,
                     );
 
-                    //  final postId = posts[index].id;
-                    //  final isLiked = likedPosts[posts[index].id] ?? false;
+                    final commentsRef = FirebaseFirestore.instance
+                        .collection('posts')
+                        .doc(posts[index].id)
+                        .collection('comments');
 
-                    return SocialMediaPostCard(
-                        post: post,
-                        postId: posts[index].id,
-                        isLiked: isLiked,
-                        onLikePressed: () => toggleLike(posts[index].id));
+                    return FutureBuilder<QuerySnapshot>(
+                      future: commentsRef.get(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                                ConnectionState.waiting &&
+                            !snapshot.hasData) {
+                          return const Text('Loading...');
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error loading comments');
+                        }
+
+                        // Calculate the number of comments
+                        final numComments = snapshot.data!.docs.length;
+
+                        return SocialMediaPostCard(
+                          post: post,
+                          postId: posts[index].id,
+                          isLiked: likedPosts[posts[index].id] ?? false,
+                          numComments: numComments,
+                          onLikePressed: () => togglePostLike(posts[index].id),
+                        );
+                      },
+                    );
                   },
                 );
               },
@@ -377,7 +482,7 @@ AppBar centralAppBar(BuildContext context, String title) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfile(),
+              builder: (context) => UserProfileScreen(),
             ),
           );
         },

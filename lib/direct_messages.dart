@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class DirectMessagesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Profile'),
+        title: Text('Direct Messages'),
       ),
       body: Center(
-        child: Text('User Profile'),
+        child: Text('Direct Messages Screen'),
       ),
     );
   }
