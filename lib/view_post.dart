@@ -157,8 +157,13 @@ class SocialMediaPostScreen extends StatefulWidget {
   final SocialMediaPost post;
   final String postId;
   final bool? isLiked;
+  final Function togglePostLike;
   const SocialMediaPostScreen(
-      {Key? key, required this.post, required this.postId, this.isLiked})
+      {Key? key,
+      required this.post,
+      required this.postId,
+      this.isLiked,
+      required this.togglePostLike})
       : super(key: key);
 
   @override

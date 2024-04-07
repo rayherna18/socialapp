@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
+import 'package:socialapp/direct_messages.dart';
 import 'user_profile.dart';
 import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -69,15 +70,17 @@ class SocialMediaPostCard extends StatefulWidget {
   final bool isLiked;
   final int numComments;
   final VoidCallback onLikePressed;
+  final Function(String) togglePostLike;
 
-  const SocialMediaPostCard(
-      {Key? key,
-      required this.post,
-      required this.postId,
-      required this.isLiked,
-      required this.numComments,
-      required this.onLikePressed})
-      : super(key: key);
+  const SocialMediaPostCard({
+    Key? key,
+    required this.post,
+    required this.postId,
+    required this.isLiked,
+    required this.numComments,
+    required this.onLikePressed,
+    required this.togglePostLike,
+  }) : super(key: key);
 
   @override
   State<SocialMediaPostCard> createState() => _SocialMediaPostCardState();
@@ -189,6 +192,8 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                         builder: (context) => SocialMediaPostScreen(
                           post: widget.post,
                           postId: widget.postId,
+                          isLiked: isLiked,
+                          togglePostLike: widget.togglePostLike,
                         ),
                       ),
                     );
@@ -240,9 +245,11 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => SocialMediaPostScreen(
-                          post: widget.post,
-                          postId: widget.postId,
-                          isLiked: isLiked),
+                        post: widget.post,
+                        postId: widget.postId,
+                        isLiked: isLiked,
+                        togglePostLike: widget.togglePostLike,
+                      ),
                     ),
                   );
 
@@ -270,7 +277,9 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
 }
 
 class HomeFeedScreen extends StatefulWidget {
-  const HomeFeedScreen({Key? key}) : super(key: key);
+  const HomeFeedScreen({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _HomeFeedState createState() => _HomeFeedState();
@@ -383,6 +392,25 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: centralAppBar(context, 'Home Feed'),
+        bottomNavigationBar: CustomBottomNavigationBar(
+            currentIndex: 0,
+            onTap: (index) {
+              if (index == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserProfileScreen(),
+                  ),
+                );
+              } else if (index == 2) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DirectMessagesScreen(),
+                  ),
+                );
+              }
+            }),
         body: StreamBuilder(
           stream: _postStream,
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -449,6 +477,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                           isLiked: likedPosts[posts[index].id] ?? false,
                           numComments: numComments,
                           onLikePressed: () => togglePostLike(posts[index].id),
+                          togglePostLike: togglePostLike,
                         );
                       },
                     );

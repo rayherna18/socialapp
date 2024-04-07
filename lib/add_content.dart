@@ -21,9 +21,13 @@ class AddContentScreen extends StatefulWidget {
   final String type;
   final bool? isLiked;
 
-  const AddContentScreen(
-      {Key? key, this.post, this.postId, required this.type, this.isLiked})
-      : super(key: key);
+  const AddContentScreen({
+    Key? key,
+    this.post,
+    this.postId,
+    required this.type,
+    this.isLiked,
+  }) : super(key: key);
 
   @override
   _AddContentScreenState createState() => _AddContentScreenState();
@@ -113,15 +117,17 @@ class _AddContentScreenState extends State<AddContentScreen> {
                         'timeCommented': Timestamp.now(),
                       });
 
-                      Navigator.push(
+                      /*      Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => SocialMediaPostScreen(
                             post: widget.post!,
                             postId: widget.postId!,
+                            isLiked: isLiked,
+                            togglePostLike: ,
                           ),
                         ),
-                      );
+                      ); */
                     } else {
                       CollectionReference postsRef =
                           FirebaseFirestore.instance.collection('posts');
@@ -144,14 +150,13 @@ class _AddContentScreenState extends State<AddContentScreen> {
                         'postList': FieldValue.arrayUnion([newPostId])
                       });
 
-                      Navigator.push(
+                      /*     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomeFeedScreen(),
+                          builder: (context) => const HomeFeedScreen(goToUserProfile: ,),
                         ),
-                      );
+                      ); */
                     }
-
                     _urlController.clear();
                     _descController.clear();
                   },
@@ -206,20 +211,6 @@ Widget _buildPostPreview(SocialMediaPost post, bool isLiked,
             child: Text(post.postContent),
           ),
           SizedBox(height: 8.0),
-        ],
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          IconButton(
-            icon: isLiked
-                ? Icon(Icons.star, color: Colors.yellow)
-                : Icon(Icons.star_border),
-            onPressed: () {
-              // Handle like button press
-            },
-          ),
-          Text(post.numLikes.toString()),
         ],
       ),
       Padding(
