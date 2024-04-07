@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:socialapp/nav_bar.dart';
 import 'view_post.dart';
 import 'home_feed.dart';
 import 'user_profile.dart';
@@ -53,8 +54,27 @@ class _AddContentScreenState extends State<AddContentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          centralAppBar(context, 'New ${widget.type}'), // centralAppBar(context
+      appBar: centralAppBar(context, 'New ${widget.type}'),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserProfileScreen(),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeFeedScreen(),
+              ),
+            );
+          }
+        },
+      ), // centralAppBar(context
       body: SingleChildScrollView(
         child: Center(
           child: Padding(

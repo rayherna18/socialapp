@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:socialapp/nav_bar.dart';
 import 'home_feed.dart';
 import 'user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -252,6 +253,26 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: centralAppBar(context, 'Post'),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserProfileScreen(),
+              ),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeFeedScreen(),
+              ),
+            );
+          }
+        },
+      ),
       body: StreamBuilder(
           stream: _commentStream,
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {

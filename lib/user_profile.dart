@@ -7,9 +7,7 @@ class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('User Profile'),
-      ),
+      appBar: centralAppBar(context, 'User Profile'),
       bottomNavigationBar: CustomBottomNavigationBar(
           currentIndex: 1,
           onTap: (index) {

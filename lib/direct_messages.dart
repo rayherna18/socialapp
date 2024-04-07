@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:socialapp/user_profile.dart';
 import 'nav_bar.dart';
 import 'home_feed.dart';
 
@@ -6,9 +7,7 @@ class DirectMessagesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Direct Messages'),
-      ),
+      appBar: centralAppBar(context, 'Direct Messages'),
       bottomNavigationBar: CustomBottomNavigationBar(
           currentIndex: 2,
           onTap: (index) {
@@ -16,7 +15,7 @@ class DirectMessagesScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DirectMessagesScreen(),
+                  builder: (context) => UserProfileScreen(),
                 ),
               );
             } else if (index == 0) {
