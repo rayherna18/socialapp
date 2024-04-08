@@ -21,14 +21,16 @@ class AddContentScreen extends StatefulWidget {
   final String? postId;
   final String type;
   final bool? isLiked;
+  final Function? togglePostLike;
 
-  const AddContentScreen({
-    Key? key,
-    this.post,
-    this.postId,
-    required this.type,
-    this.isLiked,
-  }) : super(key: key);
+  const AddContentScreen(
+      {Key? key,
+      this.post,
+      this.postId,
+      required this.type,
+      this.isLiked,
+      this.togglePostLike})
+      : super(key: key);
 
   @override
   _AddContentScreenState createState() => _AddContentScreenState();
@@ -137,17 +139,17 @@ class _AddContentScreenState extends State<AddContentScreen> {
                         'timeCommented': Timestamp.now(),
                       });
 
-                      /*      Navigator.push(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => SocialMediaPostScreen(
                             post: widget.post!,
                             postId: widget.postId!,
                             isLiked: isLiked,
-                            togglePostLike: ,
+                            togglePostLike: widget.togglePostLike!,
                           ),
                         ),
-                      ); */
+                      );
                     } else {
                       CollectionReference postsRef =
                           FirebaseFirestore.instance.collection('posts');
@@ -170,12 +172,12 @@ class _AddContentScreenState extends State<AddContentScreen> {
                         'postList': FieldValue.arrayUnion([newPostId])
                       });
 
-                      /*     Navigator.push(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomeFeedScreen(goToUserProfile: ,),
+                          builder: (context) => const HomeFeedScreen(),
                         ),
-                      ); */
+                      );
                     }
                     _urlController.clear();
                     _descController.clear();

@@ -64,6 +64,33 @@ class _CommentTileState extends State<CommentTile> {
   Icon unLikedCommentIcon = const Icon(Icons.star_border_rounded);
   Icon likedCommentIcon = const Icon(Icons.star, color: Colors.yellow);
 
+  void initState() {
+    super.initState();
+    isCommentLiked = false;
+  }
+
+  Future<void> toggleCommentLike() async {
+    setState(() {
+      isCommentLiked = !isCommentLiked;
+      if (isCommentLiked) {
+        widget.comment.commentLikes++;
+      } else {
+        widget.comment.commentLikes--;
+      }
+    });
+
+    try {
+      DocumentReference commentRef = FirebaseFirestore.instance
+          .collection('posts')
+          .doc('postID')
+          .collection('comments')
+          .doc('commentID');
+      await commentRef.update({'numLikes': widget.comment.commentLikes});
+    } catch (e) {
+      print('Error updating comment likes: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -359,6 +386,7 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                                         post: widget.post,
                                         postId: widget.postId,
                                         type: "Comment",
+                                        togglePostLike: widget.togglePostLike,
                                       ),
                                     ),
                                   );

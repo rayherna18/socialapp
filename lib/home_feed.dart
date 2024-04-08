@@ -462,7 +462,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                         if (snapshot.connectionState ==
                                 ConnectionState.waiting &&
                             !snapshot.hasData) {
-                          return const Text('Loading...');
+                          return const Center(child: Text(' '));
                         }
                         if (snapshot.hasError) {
                           return Text('Error loading comments');
