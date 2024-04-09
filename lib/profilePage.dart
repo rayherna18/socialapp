@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:profilepage/settings.dart';
+import 'package:socialapp/settings.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key, required this.title});
@@ -36,7 +36,7 @@ class _UserProfileState extends State<UserProfile> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
+                MaterialPageRoute(builder: (context) => const Settings()),
               );
             },
           ),

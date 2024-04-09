@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
 import 'package:socialapp/direct_messages.dart';
+import 'package:socialapp/profilePage.dart';
 import 'user_profile.dart';
 import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -111,7 +112,8 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfileScreen(),
+                builder: (context) => UserProfile(
+                    title: userData['nameFirst'] + userData['nameLast']),
               ),
             );
           },
@@ -511,7 +513,8 @@ AppBar centralAppBar(BuildContext context, String title) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfileScreen(),
+              builder: (context) => UserProfile(
+                  title: userData['nameFirst'] + " " + userData['nameLast']),
             ),
           );
         },
