@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:socialapp/pages/chat_screen.dart';
+import 'package:socialapp/message/pages/chat_screen.dart';
 import 'package:socialapp/user_profile.dart';
-import 'package:socialapp/widgets/loading_widget.dart';
+import 'package:socialapp/message/widgets/loading_widget.dart';
 import 'nav_bar.dart';
 import 'home_feed.dart';
 
@@ -14,16 +17,10 @@ class DirectMessagesScreen extends StatefulWidget {
 
 class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   bool _isLoading = true;
-  final List<String> _demoList = [
-    "Demo 1",
-    "Demo 2",
-    "Demo 3",
-    "Demo 4",
-    "Demo 5",
-    "Demo 6",
-    "Demo 7",
-    "Demo 8",
-  ];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final Stream<QuerySnapshot> _userStream =
+      FirebaseFirestore.instance.collection("users").snapshots();
 
   @override
   void initState() {
@@ -63,6 +60,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
           : SingleChildScrollView(
               scrollDirection: Axis.vertical,
               child: Column(
+                mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
@@ -73,16 +71,6 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                         color: Colors.grey,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-                    child: Text(
-                      'Active user - (${8})',
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 72, 72, 72),
-                        fontSize: 16,
                       ),
                     ),
                   ),
@@ -105,75 +93,98 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                         ),
                       ],
                     ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _demoList.length,
-                      itemBuilder: (ctx, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                ctx,
-                                MaterialPageRoute(
-                                  builder: (ctx) => ChatPage(
-                                    userName: 'Demo ${index + 1}',
-                                  ),
-                                ),
-                              );
-                            },
-                            child: SizedBox(
-                              height: 70,
-                              // User display
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage:
-                                        AssetImage('assets/images/profile.png'),
-                                    backgroundColor: Colors.blue,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 0),
-                                    child: SizedBox(
-                                      width: 200,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            "Demo ${index + 1}",
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                    child: StreamBuilder<QuerySnapshot>(
+                        stream: _userStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return const Text("Error");
+                          }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const LoadingPage();
+                          }
+                          final currentDoc = snapshot.data?.docs;
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: currentDoc!.length,
+                            itemBuilder: (context, index) {
+                              if (_auth.currentUser!.uid !=
+                                  currentDoc[index]["id"]) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (ctx) => ChatPage(
+                                            userName: currentDoc[index]
+                                                ["nameFirst"],
+                                            receiverId: currentDoc[index]["id"],
                                           ),
-                                          const Text(
-                                            "Latest Messadjfodsjoasdasdasdafddfdsfdsfsewqwasdsae",
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w300,
+                                        ),
+                                      );
+                                    },
+                                    child: SizedBox(
+                                      height: 70,
+                                      // User display
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const CircleAvatar(
+                                            radius: 30,
+                                            backgroundImage: AssetImage(
+                                                'assets/images/profile.png'),
+                                            backgroundColor: Colors.blue,
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 0),
+                                            child: SizedBox(
+                                              width: 200,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    currentDoc[index]
+                                                        ["nameFirst"],
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    currentDoc[index]["email"],
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                                );
+                              } else {
+                                return const SizedBox();
+                              }
+                            },
+                          );
+                        }),
                   ),
                 ],
               ),

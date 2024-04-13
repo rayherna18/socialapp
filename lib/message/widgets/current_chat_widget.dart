@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:socialapp/pages/chat_screen.dart';
+import 'package:socialapp/message/pages/chat_screen.dart';
 
 class CurrentChat extends StatelessWidget {
   const CurrentChat({
@@ -38,14 +38,14 @@ class CurrentChat extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: InkWell(
               onTap: () {
-                Navigator.push(
-                  ctx,
-                  MaterialPageRoute(
-                    builder: (ctx) => ChatPage(
-                      userName: 'Demo ${index + 1}',
-                    ),
-                  ),
-                );
+                // Navigator.push(
+                //   ctx,
+                //   MaterialPageRoute(
+                //     builder: (ctx) => ChatPage(
+                //       userName: 'Demo ${index + 1}',
+                //     ),
+                //   ),
+                // );
               },
               enableFeedback: true,
               child: SizedBox(
