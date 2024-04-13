@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:socialapp/direct_messages.dart';
+import 'package:socialapp/home_feed.dart';
+import 'package:socialapp/nav_bar.dart';
 import 'package:socialapp/settings.dart';
 
 class UserProfile extends StatefulWidget {
@@ -25,23 +28,26 @@ class _UserProfileState extends State<UserProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        centerTitle: true,
-        //below will be the actions widget. Handles icons/buttons we will put in appBar.
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
+      appBar: centralAppBarTabs(context, widget.title),
+      bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: 1,
+          onTap: (index) {
+            if (index == 0) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const Settings()),
+                MaterialPageRoute(
+                  builder: (context) => const HomeFeedScreen(),
+                ),
               );
-            },
-          ),
-        ],
-      ),
+            } else if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DirectMessagesScreen(),
+                ),
+              );
+            }
+          }),
       // ignore: prefer_const_constructors
       body: Padding(
         padding: const EdgeInsets.all(8.0),

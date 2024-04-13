@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:socialapp/authentication/auth_page.dart';
 import 'package:socialapp/direct_messages.dart';
 import 'package:socialapp/firebase_options.dart';
 import 'package:socialapp/user_profile.dart';
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: HomeFeedScreen(),
+        home: AuthPage(),
         routes: {
           '/home': (context) => HomeFeedScreen(),
           '/profile': (context) => UserProfileScreen(),

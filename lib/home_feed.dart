@@ -1,9 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
 import 'package:socialapp/direct_messages.dart';
 import 'package:socialapp/profilePage.dart';
-import 'user_profile.dart';
+import 'profilePage.dart';
 import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'nav_bar.dart';
@@ -291,6 +292,9 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   late Stream<QuerySnapshot> _postStream;
   late Map<String, bool> likedPosts = {};
 
+  final user = FirebaseAuth.instance.currentUser!;
+  final userID = FirebaseAuth.instance.currentUser!.uid;
+
   @override
   void initState() {
     super.initState();
@@ -307,7 +311,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     try {
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(userData['id'])
+          .doc(userID)
           .get();
       if (userSnapshot.exists) {
         setState(() {
@@ -357,14 +361,14 @@ class _HomeFeedState extends State<HomeFeedScreen> {
       if (!isCurrentlyLiked) {
         await FirebaseFirestore.instance
             .collection('users')
-            .doc(userData['id'])
+            .doc(userID)
             .update({
           'likedList': FieldValue.arrayUnion([postId])
         });
       } else {
         await FirebaseFirestore.instance
             .collection('users')
-            .doc(userData['id'])
+            .doc(userID)
             .update({
           'likedList': FieldValue.arrayRemove([postId])
         });
@@ -390,10 +394,12 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     }
   }
 
+  //Grabbing the user's data
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: centralAppBar(context, 'Home Feed'),
+        appBar: centralAppBarTabs(context, 'Home Feed'),
         bottomNavigationBar: CustomBottomNavigationBar(
             currentIndex: 0,
             onTap: (index) {
@@ -401,7 +407,9 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => UserProfileScreen(),
+                    builder: (context) => UserProfile(
+                        title:
+                            userData['nameFirst'] + " " + userData['nameLast']),
                   ),
                 );
               } else if (index == 2) {
@@ -501,6 +509,31 @@ class _HomeFeedState extends State<HomeFeedScreen> {
           child: const Icon(Icons.add),
         ));
   }
+}
+
+AppBar centralAppBarTabs(BuildContext context, String title) {
+  return AppBar(
+    title: Text(title),
+    automaticallyImplyLeading: false,
+    centerTitle: true,
+    actions: [
+      GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserProfile(
+                  title: userData['nameFirst'] + " " + userData['nameLast']),
+            ),
+          );
+        },
+        child: CircleAvatar(
+          backgroundImage: NetworkImage(userData['pfpURL']),
+        ),
+      ),
+      const SizedBox(width: 16.0),
+    ],
+  );
 }
 
 AppBar centralAppBar(BuildContext context, String title) {

@@ -38,7 +38,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: centralAppBar(context, 'Direct Messages'),
+      appBar: centralAppBarTabs(context, 'Direct Messages'),
       bottomNavigationBar: CustomBottomNavigationBar(
           currentIndex: 2,
           onTap: (index) {
