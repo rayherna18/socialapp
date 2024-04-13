@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
 import 'package:socialapp/direct_messages.dart';
+import 'package:socialapp/login/pages/auth_page.dart';
+
 import 'package:socialapp/profilePage.dart';
 import 'profilePage.dart';
 import 'view_post.dart';
@@ -431,7 +433,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
               return const Center(child: Text('Error loading posts'));
             }
 
-            final posts = snapshot.data!.docs ?? [];
+            final posts = snapshot.data!.docs;
 
             return ListView.builder(
               itemCount: posts.length,
@@ -556,6 +558,15 @@ AppBar centralAppBar(BuildContext context, String title) {
         ),
       ),
       const SizedBox(width: 16.0),
+      IconButton(
+          onPressed: () {
+            FirebaseAuth.instance.signOut();
+
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => const AuthPage(),
+            ));
+          },
+          icon: Icon(Icons.logout)),
     ],
   );
 }
