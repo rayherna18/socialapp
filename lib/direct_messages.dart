@@ -27,7 +27,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
 
   @override
   void initState() {
-    Future.delayed(Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         _isLoading = false;
       });

@@ -26,6 +26,9 @@ class _ChatPageState extends State<ChatPage> {
           iconSize: 32,
           onPressed: () {
             FocusScope.of(context).unfocus();
+            Future.delayed(const Duration(milliseconds: 300), () {
+              Navigator.of(context).pop();
+            });
           },
           icon: const Icon(Icons.arrow_back),
         ),
