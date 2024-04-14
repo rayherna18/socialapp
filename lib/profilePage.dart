@@ -72,41 +72,78 @@ class _UserProfileState extends State<UserProfile> {
     });
   }
 
-  Widget _postsTabContent() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      crossAxisSpacing: 4,
-      mainAxisSpacing: 4,
-      children: List.generate(6, (index) {
-        if (index % 2 == 0) {
-          // Even indices: Display Images
-          return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage('https://via.placeholder.com/150'),
-                fit: BoxFit.cover,
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-          );
-        } else {
-          // Odd indices: Display Text
-          return Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              'Item $index',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          );
+  Future<List<Map<String, dynamic>>> _fetchPosts() async {
+    final List<dynamic> postKeys =
+        postList; // Assuming postList contains primary keys
+    final List<Map<String, dynamic>> posts = [];
+    try {
+      for (final key in postKeys) {
+        final DocumentSnapshot postSnapshot =
+            await FirebaseFirestore.instance.collection('posts').doc(key).get();
+        if (postSnapshot.exists) {
+          final post = postSnapshot.data() as Map<String, dynamic>;
+          posts.add(post);
         }
-      }),
+      }
+    } catch (e) {
+      print('Error fetching posts: $e');
+    }
+    return posts;
+  }
+
+  Widget _postsTabContent() {
+    return FutureBuilder(
+      future:
+          _fetchPosts(), // Implement this method to fetch post data from Firebase
+      builder: (context, AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading posts'));
+        }
+        final posts = snapshot.data ?? [];
+        return GridView.count(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
+          children: posts.map((post) {
+            final imageUrl = post['imageContentURL'];
+            final text = post['textContent'];
+            if (imageUrl != null && imageUrl.isNotEmpty) {
+              // Display Images
+              return Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              );
+            } else if (text != null && text.isNotEmpty) {
+              // Display Text
+              return Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  text,
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              );
+            } else {
+              // Invalid post format
+              return SizedBox.shrink();
+            }
+          }).toList(),
+        );
+      },
     );
   }
 
