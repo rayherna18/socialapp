@@ -2,20 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:socialapp/nav_bar.dart';
+import 'package:socialapp/profilePage.dart';
 import 'home_feed.dart';
-import 'user_profile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'add_content.dart';
-
-Map<String, dynamic> userData = {
-  'nameFirst': 'Raymond',
-  'nameLast': 'Hernandez',
-  'handle': 'rayherna01',
-  'pfpURL':
-      'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
-  'email': 'raymondhr12@gmail.com',
-  'id': '9q79mUimSSYMB6TaXsBgQUapJUv2',
-};
 
 class Comment {
   final String commentName;
@@ -24,6 +15,7 @@ class Comment {
   final String commentHandle;
   final String commentImageUrl;
   DateTime commentTimeStamp;
+  final String commentedBy;
   int commentLikes;
 
   String getCommentedTime() {
@@ -46,6 +38,7 @@ class Comment {
       required this.commentHandle,
       required this.commentImageUrl,
       required Timestamp commentTimeStamp,
+      required this.commentedBy,
       required this.commentLikes})
       : commentTimeStamp = commentTimeStamp.toDate();
 }
@@ -63,6 +56,7 @@ class _CommentTileState extends State<CommentTile> {
   bool isCommentLiked = false;
   Icon unLikedCommentIcon = const Icon(Icons.star_border_rounded);
   Icon likedCommentIcon = const Icon(Icons.star, color: Colors.yellow);
+  String userID = FirebaseAuth.instance.currentUser!.uid;
 
   void initState() {
     super.initState();
@@ -100,7 +94,7 @@ class _CommentTileState extends State<CommentTile> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfileScreen(),
+                builder: (context) => UserProfile(userID: userID),
               ),
             );
           },
@@ -202,6 +196,8 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
   late bool isPostLiked;
   Icon unLikedIcon = const Icon(Icons.star_border_rounded);
   Icon likedIcon = const Icon(Icons.star, color: Colors.yellow);
+  String userID = FirebaseAuth.instance.currentUser!.uid;
+  late String pfpUrl = '';
 
   late Stream<QuerySnapshot> _commentStream;
 
@@ -221,7 +217,7 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
       final postRef =
           FirebaseFirestore.instance.collection('posts').doc(widget.postId);
       final userRef =
-          FirebaseFirestore.instance.collection('users').doc(userData['id']);
+          FirebaseFirestore.instance.collection('users').doc(userID);
 
       setState(() {
         isPostLiked = !isPostLiked;
@@ -240,7 +236,7 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
         await postRef.update({'numLikes': FieldValue.increment(-1)});
       }
 
-      await userRef.update({'likedList': userData['likedList']});
+      //await userRef.update({'likedList': userData['likedList']});
     } catch (e) {
       print('Error updating likes: $e');
     }
@@ -256,14 +252,15 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
       if (commenterSnapshot.exists) {
         final commenterData = commenterSnapshot.data();
         return Comment(
-          commentName: commenterSnapshot['nameFirst'] +
+          commentName: commenterSnapshot['firstName'] +
               ' ' +
-              commenterSnapshot['nameLast'],
+              commenterSnapshot['lastName'],
           commentProfileImageUrl: commenterSnapshot['pfpURL'] ?? '',
           commentContent: commentData['textContent'] ?? '',
           commentHandle: commenterSnapshot['handle'] ?? '',
           commentImageUrl: commentData['imageContentURL'] ?? '',
           commentTimeStamp: commentData['timeCommented'] ?? DateTime.now(),
+          commentedBy: commentData['commentedBy'] ?? '',
           commentLikes: 0,
         );
       } else {
@@ -276,10 +273,27 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
     }
   }
 
+  Future<void> setUsePfpUrl() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userID)
+          .get()
+          .then((DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot.exists) {
+          pfpUrl = documentSnapshot['pfpURL'];
+        } else {
+          print('Document does not exist on the database');
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: centralAppBar(context, 'Post'),
+      appBar: centralAppBar(context, 'Post', pfpUrl),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: 0,
         onTap: (index) {
@@ -287,7 +301,9 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfileScreen(),
+                builder: (context) => UserProfile(
+                  userID: userID,
+                ),
               ),
             );
           } else if (index == 2) {
@@ -325,7 +341,9 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => UserProfileScreen(),
+                              builder: (context) => UserProfile(
+                                userID: widget.post.createdBy,
+                              ),
                             ),
                           );
                         },

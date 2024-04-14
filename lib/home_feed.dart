@@ -9,16 +9,6 @@ import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'nav_bar.dart';
 
-Map<String, dynamic> userData = {
-  'nameFirst': 'Raymond',
-  'nameLast': 'Hernandez',
-  'handle': 'rayherna01',
-  'pfpURL':
-      'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
-  'email': 'raymondhr12@gmail.com',
-  'id': '9q79mUimSSYMB6TaXsBgQUapJUv2',
-};
-
 class SocialMediaPost {
   final String name;
   final String handle;
@@ -26,6 +16,7 @@ class SocialMediaPost {
   DateTime postTimeStamp;
   final String postContent;
   final String postImageUrl;
+  final String createdBy;
   int? numLikes;
   int? numComments;
 
@@ -61,6 +52,7 @@ class SocialMediaPost {
     required Timestamp postTimeStamp,
     required this.postContent,
     required this.postImageUrl,
+    required this.createdBy,
     this.numLikes = 0,
     this.numComments = 0,
   }) : postTimeStamp = postTimeStamp.toDate();
@@ -100,6 +92,14 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
     isLiked = widget.isLiked;
   }
 
+  String _validateUrl(String url) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    } else {
+      return 'https://' + url;
+    }
+  }
+
   TextEditingController _commentController = TextEditingController();
 
   @override
@@ -114,7 +114,8 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
               context,
               MaterialPageRoute(
                 builder: (context) => UserProfile(
-                    title: userData['nameFirst'] + userData['nameLast']),
+                  userID: widget.post.createdBy,
+                ),
               ),
             );
           },
@@ -139,8 +140,10 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.0),
                 child: widget.post.postImageUrl.isNotEmpty
-                    ? Image.network(widget.post.postImageUrl,
-                        width: double.infinity, fit: BoxFit.cover)
+                    ? Image.network(_validateUrl(widget.post.postImageUrl),
+                        width: MediaQuery.of(context).size.width - 16,
+                        height: MediaQuery.of(context).size.width - 16,
+                        fit: BoxFit.cover)
                     : const SizedBox.shrink(),
               ),
               const SizedBox(height: 8.0),
@@ -151,11 +154,17 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
             ],
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Row(
+        Container(
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+                SizedBox(
+                  width: 25,
+                ),
                 IconButton(
                   icon: isLiked ? likedIcon : unLikedIcon,
                   color: isLiked ? Colors.red : null,
@@ -182,10 +191,9 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                   },
                 ),
                 Text(widget.post.numLikes.toString()),
-              ],
-            ),
-            Row(
-              children: [
+                SizedBox(
+                  width: 10,
+                ),
                 IconButton(
                   icon: const Icon(Icons.comment_outlined),
                   onPressed: () {
@@ -202,12 +210,25 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                     );
                   },
                 ),
-                widget.post.numComments! >= 0
-                    ? Text(widget.post.numComments.toString())
-                    : const Text(''),
+                StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('posts')
+                        .doc(widget.postId)
+                        .collection('comments')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError)
+                        return Text('Error: ${snapshot.error}');
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return CircularProgressIndicator();
+                        default:
+                          return Text(snapshot.data!.docs.length.toString());
+                      }
+                    })
               ],
             ),
-          ],
+          ),
         ),
         Padding(
           padding: const EdgeInsets.all(12.0),
@@ -234,7 +255,7 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                       .collection('comments');
 
                   await commentsRef.add({
-                    'commentedBy': userData['id'],
+                    'commentedBy': FirebaseAuth.instance.currentUser!.uid,
                     'textContent': _commentController.text,
                     'imageContentURL': '',
                     'numLikes': 0,
@@ -292,12 +313,12 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   late Stream<QuerySnapshot> _postStream;
   late Map<String, bool> likedPosts = {};
 
-  late String firstName;
-  late String lastName;
-  late String pfpURL;
-  late String handle;
-  late String email;
-  late String userID;
+  late String firstName = "";
+  late String lastName = "";
+  late String pfpURL = "";
+  late String handle = "";
+  late String email = "";
+  late String userID = "";
 
   @override
   void initState() {
@@ -305,24 +326,45 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     _getUserData();
     _fetchLikedPosts();
     _postStream = FirebaseFirestore.instance.collection('posts').snapshots();
-    // _initSharedPreferences();
-    //_initSharedPreferences().then((_) {
-    // For resetting all post likes
-    //  resetAllPostLikes();
-    // });
   }
 
   Future<void> _fetchLikedPosts() async {
+    String userID = FirebaseAuth.instance.currentUser!.uid;
     try {
+      // Ensure user is logged in
+      if (userID.isEmpty) {
+        print('Error: User ID is empty');
+        return;
+      }
+
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userID)
           .get();
-      if (userSnapshot.exists) {
-        setState(() {
-          likedPosts =
-              (userSnapshot.data() as Map<String, dynamic>)['likedList'] ?? {};
+
+      // Check if the document exists and has data
+      if (!userSnapshot.exists || userSnapshot.data() == null) {
+        print('Error: Liked posts data not found');
+        return;
+      }
+
+      // Retrieve liked posts data
+      Map<String, dynamic> userData =
+          userSnapshot.data() as Map<String, dynamic>;
+
+      if (userData.containsKey('likedList')) {
+        // Assuming 'likedList' is a list of post IDs
+        List<dynamic> likedList = userData['likedList'] ?? [];
+        // Convert the list to a map for easier lookup
+        Map<String, bool> likedPostsMap = {};
+        likedList.forEach((postId) {
+          likedPostsMap[postId] = true;
         });
+        setState(() {
+          likedPosts = likedPostsMap;
+        });
+      } else {
+        print('Error: Liked posts data not found');
       }
     } catch (e) {
       print('Error fetching liked posts: $e');
@@ -367,7 +409,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
         firstName = userData['firstName'] ?? 'N/A';
         lastName = userData['lastName'] ?? 'N/A';
-        pfpURL = userData['pfpURL'] ?? 'N/A';
+        pfpURL = userData['pfpURL'] ?? '';
         handle = userData['handle'] ?? 'N/A';
         email = userData['email'] ?? 'N/A';
         userID = userUID;
@@ -377,6 +419,15 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     } catch (e) {
       print('Error fetching user data: $e');
     }
+  }
+
+  Future<int> getNumPostComments(String postId) async {
+    CollectionReference postsRef =
+        FirebaseFirestore.instance.collection('posts');
+    QuerySnapshot commentSnapshot =
+        await postsRef.doc(postId).collection('comments').get();
+    int numberOfComments = commentSnapshot.docs.length;
+    return numberOfComments;
   }
 
   Future<void> togglePostLike(String postId) async {
@@ -432,7 +483,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: centralAppBarTabs(context, 'Home Feed'),
+        appBar: centralAppBarTabs(context, 'Home Feed', pfpURL),
         bottomNavigationBar: CustomBottomNavigationBar(
             currentIndex: 0,
             onTap: (index) {
@@ -440,15 +491,14 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        UserProfile(title: "$firstName $lastName"),
+                    builder: (context) => UserProfile(userID: userID),
                   ),
                 );
               } else if (index == 2) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DirectMessagesScreen(),
+                    builder: (context) => const DirectMessagesScreen(),
                   ),
                 );
               }
@@ -465,67 +515,79 @@ class _HomeFeedState extends State<HomeFeedScreen> {
 
             final posts = snapshot.data!.docs;
 
-            return ListView.builder(
-              itemCount: posts.length,
-              itemBuilder: (context, index) {
-                final postData = posts[index].data() as Map<String, dynamic>;
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: posts.length,
+                    itemBuilder: (context, index) {
+                      final postData =
+                          posts[index].data() as Map<String, dynamic>;
 
-                final isLiked = likedPosts[posts[index].id] ?? false;
+                      final isLiked = likedPosts[posts[index].id] ?? false;
 
-                return FutureBuilder(
-                  future: getPosterData(postData['postedBy']),
-                  builder: (context,
-                      AsyncSnapshot<Map<String, dynamic>> userDataSnapshot) {
-                    final userData = userDataSnapshot.data ?? {};
-                    final username =
-                        '${userData['nameFirst']} ${userData['nameLast']}';
-                    final handle = userData['handle'];
-                    final profileImageUrl = userData['pfpURL'];
+                      return FutureBuilder(
+                        future: getPosterData(postData['postedBy']),
+                        builder: (context,
+                            AsyncSnapshot<Map<String, dynamic>>
+                                userDataSnapshot) {
+                          final userData = userDataSnapshot.data ?? {};
+                          final username =
+                              '${userData['firstName']} ${userData['lastName']}';
+                          final handle = userData['handle'];
+                          final profileImageUrl = userData['pfpURL'];
 
-                    final post = SocialMediaPost(
-                      name: username,
-                      handle: handle ?? '',
-                      profileImageUrl: profileImageUrl ?? '',
-                      postTimeStamp: postData['timePosted'],
-                      postContent: postData['textContent'] ?? '',
-                      postImageUrl: postData['imageContentURL'] ?? '',
-                      numLikes: postData['numLikes'] ?? 0,
-                      numComments: postData['numComments'] ?? 0,
-                    );
+                          final post = SocialMediaPost(
+                            name: username ?? '',
+                            handle: handle ?? '',
+                            profileImageUrl: profileImageUrl ?? '',
+                            postTimeStamp: postData['timePosted'],
+                            postContent: postData['textContent'] ?? '',
+                            postImageUrl: postData['imageContentURL'] ?? '',
+                            numLikes: postData['numLikes'] ?? 0,
+                            numComments: postData['numComments'] ?? 0,
+                            createdBy: postData['postedBy'] ?? '',
+                          );
 
-                    final commentsRef = FirebaseFirestore.instance
-                        .collection('posts')
-                        .doc(posts[index].id)
-                        .collection('comments');
+                          final commentsRef = FirebaseFirestore.instance
+                              .collection('posts')
+                              .doc(posts[index].id)
+                              .collection('comments');
 
-                    return FutureBuilder<QuerySnapshot>(
-                      future: commentsRef.get(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                                ConnectionState.waiting &&
-                            !snapshot.hasData) {
-                          return const Center(child: Text(' '));
-                        }
-                        if (snapshot.hasError) {
-                          return Text('Error loading comments');
-                        }
+                          return FutureBuilder<QuerySnapshot>(
+                            future: commentsRef.get(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.waiting &&
+                                  !snapshot.hasData) {
+                                return const Center(child: Text(' '));
+                              }
+                              if (snapshot.hasError) {
+                                return Text('Error loading comments');
+                              }
 
-                        // Calculate the number of comments
-                        final numComments = snapshot.data!.docs.length;
+                              // Calculate the number of comments
+                              final numComments = snapshot.data!.docs.length;
 
-                        return SocialMediaPostCard(
-                          post: post,
-                          postId: posts[index].id,
-                          isLiked: likedPosts[posts[index].id] ?? false,
-                          numComments: numComments,
-                          onLikePressed: () => togglePostLike(posts[index].id),
-                          togglePostLike: togglePostLike,
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+                              return SocialMediaPostCard(
+                                post: post,
+                                postId: posts[index].id,
+                                isLiked: likedPosts[posts[index].id] ?? false,
+                                numComments: numComments,
+                                onLikePressed: () =>
+                                    togglePostLike(posts[index].id),
+                                togglePostLike: togglePostLike,
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -543,7 +605,10 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   }
 }
 
-AppBar centralAppBarTabs(BuildContext context, String title) {
+AppBar centralAppBarTabs(BuildContext context, String title, String pfpURL) {
+  final user = FirebaseAuth.instance.currentUser!;
+  final userID = user.uid;
+
   return AppBar(
     title: Text(title),
     automaticallyImplyLeading: false,
@@ -554,30 +619,33 @@ AppBar centralAppBarTabs(BuildContext context, String title) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfile(
-                  title: userData['nameFirst'] + " " + userData['nameLast']),
+              builder: (context) => UserProfile(userID: userID),
             ),
           );
         },
         child: CircleAvatar(
-          backgroundImage: NetworkImage(userData['pfpURL']),
+          backgroundImage: NetworkImage(pfpURL),
+          backgroundColor: Colors.grey.shade200, // Fallback color
         ),
       ),
       const SizedBox(width: 16.0),
       IconButton(
-          onPressed: () {
-            FirebaseAuth.instance.signOut();
-
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => const AuthPage(),
-            ));
-          },
-          icon: Icon(Icons.logout)),
+        onPressed: () {
+          FirebaseAuth.instance.signOut();
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => const AuthPage(),
+          ));
+        },
+        icon: Icon(Icons.logout),
+      ),
     ],
   );
 }
 
-AppBar centralAppBar(BuildContext context, String title) {
+AppBar centralAppBar(BuildContext context, String title, String pfpURL) {
+  final user = FirebaseAuth.instance.currentUser!;
+  final userID = user.uid;
+
   return AppBar(
     title: Text(title),
     centerTitle: true,
@@ -587,25 +655,25 @@ AppBar centralAppBar(BuildContext context, String title) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfile(
-                  title: userData['nameFirst'] + " " + userData['nameLast']),
+              builder: (context) => UserProfile(userID: userID),
             ),
           );
         },
         child: CircleAvatar(
-          backgroundImage: NetworkImage(userData['pfpURL']),
+          backgroundImage: NetworkImage(pfpURL),
+          backgroundColor: Colors.grey.shade200, // Fallback color
         ),
       ),
       const SizedBox(width: 16.0),
       IconButton(
-          onPressed: () {
-            FirebaseAuth.instance.signOut();
-
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (context) => const AuthPage(),
-            ));
-          },
-          icon: Icon(Icons.logout)),
+        onPressed: () {
+          FirebaseAuth.instance.signOut();
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => const AuthPage(),
+          ));
+        },
+        icon: Icon(Icons.logout),
+      ),
     ],
   );
 }

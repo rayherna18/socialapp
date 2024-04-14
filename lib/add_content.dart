@@ -1,20 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/nav_bar.dart';
+import 'package:socialapp/profilePage.dart';
 import 'view_post.dart';
 import 'home_feed.dart';
-import 'user_profile.dart';
-
-Map<String, dynamic> userData = {
-  // Replace with Firebase Auth user data
-  'nameFirst': 'Raymond',
-  'nameLast': 'Hernandez',
-  'handle': 'rayherna01',
-  'pfpURL':
-      'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
-  'email': 'raymondhr12@gmail.com',
-  'id': '9q79mUimSSYMB6TaXsBgQUapJUv2',
-};
 
 class AddContentScreen extends StatefulWidget {
   final SocialMediaPost? post;
@@ -40,10 +30,14 @@ class _AddContentScreenState extends State<AddContentScreen> {
   TextEditingController _urlController = TextEditingController();
   TextEditingController _descController = TextEditingController();
   late bool isLiked;
-
+  late String pfpURL = "";
+  late String firstName = "";
+  late String lastName = "";
+  late String userID = "";
   @override
   void initState() {
     super.initState();
+    _getUserData();
     isLiked = widget.isLiked ?? false;
   }
 
@@ -53,10 +47,35 @@ class _AddContentScreenState extends State<AddContentScreen> {
     super.dispose();
   }
 
+  Future<void> _getUserData() async {
+    final user = FirebaseAuth.instance.currentUser!;
+    final userUID = user.uid;
+
+    try {
+      // Access the user's document in Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userUID)
+          .get();
+      if (userDoc.exists) {
+        // Extract the data
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        pfpURL = userData['pfpURL'] ?? 'N/A';
+        firstName = userData['firstName'] ?? 'N/A';
+        lastName = userData['lastName'] ?? 'N/A';
+        userID = userUID;
+      } else {
+        print('No user data available');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: centralAppBar(context, 'New ${widget.type}'),
+      appBar: centralAppBar(context, 'New ${widget.type}', pfpURL),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: 0,
         onTap: (index) {
@@ -64,7 +83,7 @@ class _AddContentScreenState extends State<AddContentScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserProfileScreen(),
+                builder: (context) => UserProfile(userID: userID),
               ),
             );
           } else if (index == 2) {
@@ -84,7 +103,8 @@ class _AddContentScreenState extends State<AddContentScreen> {
             child: Column(
               children: [
                 if (widget.type == "Comment" && widget.post != null)
-                  _buildPostPreview(widget.post!, isLiked, context: context),
+                  _buildPostPreview(widget.post!, isLiked,
+                      context: context, userID: userID),
                 Divider(
                   // Add a divider between the post preview and the form
                   thickness: 1.0,
@@ -131,7 +151,7 @@ class _AddContentScreenState extends State<AddContentScreen> {
                           .collection('comments');
 
                       await commentsRef.add({
-                        'commentedBy': userData['id'],
+                        'commentedBy': userID,
                         'textContent': _descController.text,
                         'imageContentURL': _urlController.text,
                         'numLikes': 0,
@@ -155,7 +175,7 @@ class _AddContentScreenState extends State<AddContentScreen> {
                           FirebaseFirestore.instance.collection('posts');
 
                       DocumentReference newPostRef = await postsRef.add({
-                        'postedBy': userData['id'],
+                        'postedBy': userID,
                         'textContent': _descController.text,
                         'imageContentURL': _urlController.text,
                         'numLikes': 0,
@@ -167,7 +187,7 @@ class _AddContentScreenState extends State<AddContentScreen> {
 
                       await FirebaseFirestore.instance
                           .collection('users')
-                          .doc(userData['id'])
+                          .doc(userID)
                           .update({
                         'postList': FieldValue.arrayUnion([newPostId])
                       });
@@ -194,7 +214,7 @@ class _AddContentScreenState extends State<AddContentScreen> {
 }
 
 Widget _buildPostPreview(SocialMediaPost post, bool isLiked,
-    {BuildContext? context}) {
+    {BuildContext? context, String? userID}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -203,7 +223,9 @@ Widget _buildPostPreview(SocialMediaPost post, bool isLiked,
           Navigator.push(
             context!,
             MaterialPageRoute(
-              builder: (context) => UserProfileScreen(),
+              builder: (context) => UserProfile(
+                userID: userID!,
+              ),
             ),
           );
         },
