@@ -22,6 +22,8 @@ class _UserProfileState extends State<UserProfile> {
   late String pfpURL = '';
   late String handle = '';
   bool isLoading = true;
+  late List<dynamic> postList = [];
+  late List<dynamic> likedList = [];
   /* int _counter = 0;
   void _incrementCounter() {
     setState(() {
@@ -31,7 +33,7 @@ class _UserProfileState extends State<UserProfile> {
   int selectedTabIndex =
       0; //used to control which tab is being shown. By index.
 
-  int getPostNum() => 42; // Dummy value
+  //int getPostNum() => 42; // Dummy value
   int getFollowersNum() => 180; // Dummy value
   int getFollowingNum() => 560; // Dummy value
 
@@ -48,11 +50,20 @@ class _UserProfileState extends State<UserProfile> {
         .get()
         .then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
+        final userData = documentSnapshot.data() as Map<String, dynamic>;
         setState(() {
-          firstName = documentSnapshot['firstName'];
-          lastName = documentSnapshot['lastName'];
-          handle = documentSnapshot['handle'];
-          pfpURL = documentSnapshot['pfpURL'];
+          firstName = userData['firstName'];
+          lastName = userData['lastName'];
+          handle = userData['handle'];
+          pfpURL = userData['pfpURL'];
+          // Check if 'likedList' exists before accessing it
+          likedList = userData.containsKey('likedList')
+              ? List<String>.from(userData['likedList'])
+              : [];
+          // Check if 'postList' exists before accessing it
+          postList = userData.containsKey('postList')
+              ? List<String>.from(userData['postList'])
+              : [];
           isLoading = false;
         });
       } else {
@@ -244,7 +255,7 @@ class _UserProfileState extends State<UserProfile> {
                       const Text("Posts",
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text('${getPostNum()}'),
+                      Text(postList.length.toString()), //Text('${getPostNum()
                     ],
                   ),
                   // Column for Followers

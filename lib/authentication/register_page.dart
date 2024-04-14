@@ -48,6 +48,9 @@ class _RegisterPageState extends State<RegisterPage> {
           'lastName': lastNameController.text,
           'handle': handleController.text,
           'pfpURL': pfpURLController.text,
+          'likedList': [],
+          'postList': [],
+          'followingList': [],
         });
       } else {
         // show error message, passwords do not match

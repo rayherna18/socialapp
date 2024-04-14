@@ -162,9 +162,6 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                SizedBox(
-                  width: 25,
-                ),
                 IconButton(
                   icon: isLiked ? likedIcon : unLikedIcon,
                   color: isLiked ? Colors.red : null,
@@ -191,9 +188,6 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                   },
                 ),
                 Text(widget.post.numLikes.toString()),
-                SizedBox(
-                  width: 10,
-                ),
                 IconButton(
                   icon: const Icon(Icons.comment_outlined),
                   onPressed: () {
@@ -221,7 +215,7 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
                         return Text('Error: ${snapshot.error}');
                       switch (snapshot.connectionState) {
                         case ConnectionState.waiting:
-                          return CircularProgressIndicator();
+                          return const Text(" ");
                         default:
                           return Text(snapshot.data!.docs.length.toString());
                       }
