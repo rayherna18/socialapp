@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import './components/my_button.dart';
@@ -15,6 +16,10 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   // text editing controllers
   final emailController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final handleController = TextEditingController();
+  final pfpURLController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
@@ -36,6 +41,14 @@ class _RegisterPageState extends State<RegisterPage> {
       if (passwordController.text == confirmPasswordController.text) {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text);
+        String userId = FirebaseAuth.instance.currentUser!.uid;
+        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+          'email': emailController.text,
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
+          'handle': handleController.text,
+          'pfpURL': pfpURLController.text,
+        });
       } else {
         // show error message, passwords do not match
         showErrorMessage("Passwords don't match");
@@ -95,12 +108,49 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 // Email Textfield
 
+                Row(
+                  children: [
+                    Expanded(
+                      child: MyTextField(
+                        controller: firstNameController,
+                        hintText: 'First Name',
+                        obscureText: false,
+                      ),
+                    ),
+                    SizedBox(width: 0.5), // Spacer (10 pixels
+                    Expanded(
+                      child: MyTextField(
+                        controller: lastNameController,
+                        hintText: 'Last Name',
+                        obscureText: false,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 10),
+
+                MyTextField(
+                  controller: handleController,
+                  hintText: 'Handle',
+                  obscureText: false,
+                ),
+
+                SizedBox(height: 10),
+
+                MyTextField(
+                  controller: pfpURLController,
+                  hintText: 'Profile Picture URL',
+                  obscureText: false,
+                ),
+
+                SizedBox(height: 10),
+
                 MyTextField(
                   controller: emailController,
                   hintText: 'Email',
                   obscureText: false,
                 ),
-
                 // Password Textfield
 
                 SizedBox(height: 10),

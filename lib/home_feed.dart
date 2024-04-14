@@ -2,10 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
+import 'package:socialapp/authentication/auth_page.dart';
 import 'package:socialapp/direct_messages.dart';
-import 'package:socialapp/login/pages/auth_page.dart';
-
-import 'package:socialapp/profilePage.dart';
 import 'profilePage.dart';
 import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -294,12 +292,17 @@ class _HomeFeedState extends State<HomeFeedScreen> {
   late Stream<QuerySnapshot> _postStream;
   late Map<String, bool> likedPosts = {};
 
-  final user = FirebaseAuth.instance.currentUser!;
-  final userID = FirebaseAuth.instance.currentUser!.uid;
+  late String firstName;
+  late String lastName;
+  late String pfpURL;
+  late String handle;
+  late String email;
+  late String userID;
 
   @override
   void initState() {
     super.initState();
+    _getUserData();
     _fetchLikedPosts();
     _postStream = FirebaseFirestore.instance.collection('posts').snapshots();
     // _initSharedPreferences();
@@ -338,13 +341,41 @@ class _HomeFeedState extends State<HomeFeedScreen> {
     }
   } */
 
-  Future<Map<String, dynamic>> getUserData(String userID) async {
+  Future<Map<String, dynamic>> getPosterData(String userID) async {
     final userDoc =
         await FirebaseFirestore.instance.collection('users').doc(userID).get();
     if (userDoc.exists) {
       return userDoc.data() as Map<String, dynamic>;
     } else {
       return {};
+    }
+  }
+
+  Future<void> _getUserData() async {
+    final user = FirebaseAuth.instance.currentUser!;
+    final userUID = user.uid;
+
+    try {
+      // Access the user's document in Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userUID)
+          .get();
+
+      if (userDoc.exists) {
+        // Extract the data
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        firstName = userData['firstName'] ?? 'N/A';
+        lastName = userData['lastName'] ?? 'N/A';
+        pfpURL = userData['pfpURL'] ?? 'N/A';
+        handle = userData['handle'] ?? 'N/A';
+        email = userData['email'] ?? 'N/A';
+        userID = userUID;
+      } else {
+        print('No user data available');
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
     }
   }
 
@@ -409,9 +440,8 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => UserProfile(
-                        title:
-                            userData['nameFirst'] + " " + userData['nameLast']),
+                    builder: (context) =>
+                        UserProfile(title: "$firstName $lastName"),
                   ),
                 );
               } else if (index == 2) {
@@ -443,7 +473,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                 final isLiked = likedPosts[posts[index].id] ?? false;
 
                 return FutureBuilder(
-                  future: getUserData(postData['postedBy']),
+                  future: getPosterData(postData['postedBy']),
                   builder: (context,
                       AsyncSnapshot<Map<String, dynamic>> userDataSnapshot) {
                     final userData = userDataSnapshot.data ?? {};
@@ -534,6 +564,15 @@ AppBar centralAppBarTabs(BuildContext context, String title) {
         ),
       ),
       const SizedBox(width: 16.0),
+      IconButton(
+          onPressed: () {
+            FirebaseAuth.instance.signOut();
+
+            Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (context) => const AuthPage(),
+            ));
+          },
+          icon: Icon(Icons.logout)),
     ],
   );
 }
