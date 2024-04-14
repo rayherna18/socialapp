@@ -234,7 +234,7 @@ class _UserProfileState extends State<UserProfile> {
                       ),
                     ),
                   ),
-                  //gesture detector for liked
+                  //gesture detector for liked posts
                   GestureDetector(
                     onTap: () => setState(() => selectedTabIndex = 1),
                     child: Text(
