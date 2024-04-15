@@ -129,12 +129,17 @@ class _UserProfileState extends State<UserProfile> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.blueAccent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  text,
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    text,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
               );
             } else {

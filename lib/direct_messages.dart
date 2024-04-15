@@ -18,11 +18,18 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   bool _isLoading = true;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late String pfpURL = "";
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final Stream<QuerySnapshot> _userStream =
+      FirebaseFirestore.instance.collection("users").snapshots();
 
   @override
   void initState() {
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      setState(() {
+        _isLoading = false;
+      });
+    });
     super.initState();
-    getUserData();
   }
 
   void getUserData() async {
@@ -83,40 +90,6 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                       ),
                     ),
                   ),
-<<<<<<< HEAD
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection("users")
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return const Text("Error");
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const LoadingPage();
-                      }
-                      final currentDocs = snapshot.data?.docs;
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: currentDocs!.length,
-                        itemBuilder: (context, index) {
-                          final doc = currentDocs[index];
-                          final currentUser = _auth.currentUser;
-                          if (currentUser != null &&
-                              currentUser.uid != doc.id) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 10),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (ctx) => ChatPage(
-                                        userName: doc["firstName"],
-                                        receiverId: doc.id,
-=======
                   Container(
                     margin: const EdgeInsets.only(top: 20),
                     padding: const EdgeInsets.symmetric(
@@ -218,64 +191,16 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                             ),
                                           ),
                                         ],
->>>>>>> dev_branch
                                       ),
                                     ),
-                                  );
-                                },
-                                child: SizedBox(
-                                  height: 70,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 30,
-                                        backgroundImage: AssetImage(
-                                            'assets/images/profile.png'),
-                                        backgroundColor: Colors.blue,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 0),
-                                        child: SizedBox(
-                                          width: 200,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                doc["firstName"],
-                                                style: const TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              Text(
-                                                doc["email"],
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w300,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
                                   ),
-                                ),
-                              ),
-                            );
-                          } else {
-                            return const SizedBox();
-                          }
-                        },
-                      );
-                    },
+                                );
+                              } else {
+                                return const SizedBox();
+                              }
+                            },
+                          );
+                        }),
                   ),
                 ],
               ),

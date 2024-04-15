@@ -9,19 +9,6 @@ import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'nav_bar.dart';
 
-<<<<<<< HEAD
-=======
-Map<String, dynamic> userData = {
-  'firstName': 'Raymond',
-  'lastName': 'Hernandez',
-  'handle': 'rayherna01',
-  'pfpURL':
-      'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
-  'email': 'raymondhr12@gmail.com',
-  'id': '9q79mUimSSYMB6TaXsBgQUapJUv2',
-};
-
->>>>>>> dev_branch
 class SocialMediaPost {
   final String name;
   final String handle;
@@ -127,12 +114,8 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
               context,
               MaterialPageRoute(
                 builder: (context) => UserProfile(
-<<<<<<< HEAD
                   userID: widget.post.createdBy,
                 ),
-=======
-                    title: userData['firstName'] + userData['lastName']),
->>>>>>> dev_branch
               ),
             );
           },
@@ -539,7 +522,6 @@ class _HomeFeedState extends State<HomeFeedScreen> {
 
                       final isLiked = likedPosts[posts[index].id] ?? false;
 
-<<<<<<< HEAD
                       return FutureBuilder(
                         future: getPosterData(postData['postedBy']),
                         builder: (context,
@@ -550,17 +532,6 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                               '${userData['firstName']} ${userData['lastName']}';
                           final handle = userData['handle'];
                           final profileImageUrl = userData['pfpURL'];
-=======
-                return FutureBuilder(
-                  future: getUserData(postData['postedBy']),
-                  builder: (context,
-                      AsyncSnapshot<Map<String, dynamic>> userDataSnapshot) {
-                    final userData = userDataSnapshot.data ?? {};
-                    final username =
-                        '${userData['firstName']} ${userData['lastName']}';
-                    final handle = userData['handle'];
-                    final profileImageUrl = userData['pfpURL'];
->>>>>>> dev_branch
 
                           final post = SocialMediaPost(
                             name: username ?? '',
@@ -678,12 +649,7 @@ AppBar centralAppBar(BuildContext context, String title, String pfpURL) {
           Navigator.push(
             context,
             MaterialPageRoute(
-<<<<<<< HEAD
               builder: (context) => UserProfile(userID: userID),
-=======
-              builder: (context) => UserProfile(
-                  title: userData['firstName'] + " " + userData['lastName']),
->>>>>>> dev_branch
             ),
           );
         },

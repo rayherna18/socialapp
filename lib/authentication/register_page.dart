@@ -22,18 +22,20 @@ class _RegisterPageState extends State<RegisterPage> {
   final pfpURLController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Sign user up method
   void signUserUp() async {
     // Show loading circle
-    showDialog(
-      context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
+    //  showDialog(
+    //    context: context,
+    //    builder: (context) {
+    //      return const Center(
+    //        child: CircularProgressIndicator(),
+    //      );
+    //    },
+    //  );
 
 // Try sign up
     try {
@@ -41,27 +43,13 @@ class _RegisterPageState extends State<RegisterPage> {
       if (passwordController.text == confirmPasswordController.text) {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text);
-<<<<<<< HEAD:lib/authentication/register_page.dart
-        String userId = FirebaseAuth.instance.currentUser!.uid;
-        await FirebaseFirestore.instance.collection('users').doc(userId).set({
-          'email': emailController.text,
-          'firstName': firstNameController.text,
-          'lastName': lastNameController.text,
-          'handle': handleController.text,
-          'pfpURL': pfpURLController.text,
-          'likedList': [],
-          'postList': [],
-          'followingList': [],
-        });
-=======
         await _db.collection("users").doc(_auth.currentUser!.uid).set({
-          "firstName": firstnameController.text,
-          "lastName": lastnameController.text,
+          "firstName": firstNameController.text,
+          "lastName": lastNameController.text,
           "email": emailController.text,
           "password": passwordController.text,
           "id": _auth.currentUser!.uid,
         }, SetOptions(merge: true));
->>>>>>> dev_branch:lib/login/pages/register_page.dart
       } else {
         // show error message, passwords do not match
         showErrorMessage("Passwords don't match");
