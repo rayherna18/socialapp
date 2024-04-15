@@ -30,12 +30,6 @@ class _UserProfileState extends State<UserProfile> {
   //TextEditingController for bio text field
   final TextEditingController bioController = TextEditingController();
 
-  /* int _counter = 0;
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  } */
   int selectedTabIndex =
       0; //used to control which tab is being shown. By index.
 
