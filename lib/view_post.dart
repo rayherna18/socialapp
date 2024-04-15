@@ -8,16 +8,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'add_content.dart';
 
-Map<String, dynamic> userData = {
-  'firstName': 'Raymond',
-  'lastName': 'Hernandez',
-  'handle': 'rayherna01',
-  'pfpURL':
-      'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
-  'email': 'raymondhr12@gmail.com',
-  'id': '9q79mUimSSYMB6TaXsBgQUapJUv2',
-};
-
 class Comment {
   final String commentName;
   final String commentProfileImageUrl;
