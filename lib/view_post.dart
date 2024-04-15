@@ -8,8 +8,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'add_content.dart';
 
 Map<String, dynamic> userData = {
-  'nameFirst': 'Raymond',
-  'nameLast': 'Hernandez',
+  'firstName': 'Raymond',
+  'lastName': 'Hernandez',
   'handle': 'rayherna01',
   'pfpURL':
       'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
@@ -256,9 +256,9 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
       if (commenterSnapshot.exists) {
         final commenterData = commenterSnapshot.data();
         return Comment(
-          commentName: commenterSnapshot['nameFirst'] +
+          commentName: commenterSnapshot['firstName'] +
               ' ' +
-              commenterSnapshot['nameLast'],
+              commenterSnapshot['lastName'],
           commentProfileImageUrl: commenterSnapshot['pfpURL'] ?? '',
           commentContent: commentData['textContent'] ?? '',
           commentHandle: commenterSnapshot['handle'] ?? '',

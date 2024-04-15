@@ -34,7 +34,7 @@ class _ChatPageState extends State<ChatPage> {
       for (var doc in event.docs) {
         if (senderID == await doc.get("id")) {
           email = await doc.get("email");
-          firstName = await doc.get("nameFirst");
+          firstName = await doc.get("firstName");
           break;
         }
       }

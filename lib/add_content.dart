@@ -7,8 +7,8 @@ import 'user_profile.dart';
 
 Map<String, dynamic> userData = {
   // Replace with Firebase Auth user data
-  'nameFirst': 'Raymond',
-  'nameLast': 'Hernandez',
+  'firstName': 'Raymond',
+  'lastName': 'Hernandez',
   'handle': 'rayherna01',
   'pfpURL':
       'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',

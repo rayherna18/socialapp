@@ -12,8 +12,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'nav_bar.dart';
 
 Map<String, dynamic> userData = {
-  'nameFirst': 'Raymond',
-  'nameLast': 'Hernandez',
+  'firstName': 'Raymond',
+  'lastName': 'Hernandez',
   'handle': 'rayherna01',
   'pfpURL':
       'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
@@ -116,7 +116,7 @@ class _SocialMediaPostCardState extends State<SocialMediaPostCard> {
               context,
               MaterialPageRoute(
                 builder: (context) => UserProfile(
-                    title: userData['nameFirst'] + userData['nameLast']),
+                    title: userData['firstName'] + userData['lastName']),
               ),
             );
           },
@@ -441,7 +441,7 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                       AsyncSnapshot<Map<String, dynamic>> userDataSnapshot) {
                     final userData = userDataSnapshot.data ?? {};
                     final username =
-                        '${userData['nameFirst']} ${userData['nameLast']}';
+                        '${userData['firstName']} ${userData['lastName']}';
                     final handle = userData['handle'];
                     final profileImageUrl = userData['pfpURL'];
 
@@ -517,7 +517,7 @@ AppBar centralAppBar(BuildContext context, String title) {
             context,
             MaterialPageRoute(
               builder: (context) => UserProfile(
-                  title: userData['nameFirst'] + " " + userData['nameLast']),
+                  title: userData['firstName'] + " " + userData['lastName']),
             ),
           );
         },

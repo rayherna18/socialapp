@@ -43,8 +43,8 @@ class _RegisterPageState extends State<RegisterPage> {
         await _auth.createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text);
         await _db.collection("users").doc(_auth.currentUser!.uid).set({
-          "nameFirst": firstnameController.text,
-          "nameLast": lastnameController.text,
+          "firstName": firstnameController.text,
+          "lastName": lastnameController.text,
           "email": emailController.text,
           "password": passwordController.text,
           "id": _auth.currentUser!.uid,

@@ -121,7 +121,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                         MaterialPageRoute(
                                           builder: (ctx) => ChatPage(
                                             userName: currentDoc[index]
-                                                ["nameFirst"],
+                                                ["firstName"],
                                             receiverId: currentDoc[index]["id"],
                                           ),
                                         ),
@@ -152,7 +152,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                                 children: [
                                                   Text(
                                                     currentDoc[index]
-                                                        ["nameFirst"],
+                                                        ["firstName"],
                                                     style: const TextStyle(
                                                       fontSize: 20,
                                                       fontWeight:
