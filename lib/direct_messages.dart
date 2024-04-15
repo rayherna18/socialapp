@@ -83,6 +83,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                       ),
                     ),
                   ),
+<<<<<<< HEAD
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection("users")
@@ -115,6 +116,109 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                       builder: (ctx) => ChatPage(
                                         userName: doc["firstName"],
                                         receiverId: doc.id,
+=======
+                  Container(
+                    margin: const EdgeInsets.only(top: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 25),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.elliptical(30, 25),
+                        topRight: Radius.elliptical(30, 25),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey,
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
+                    ),
+                    child: StreamBuilder<QuerySnapshot>(
+                        stream: _userStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return const Text("Error");
+                          }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const LoadingPage();
+                          }
+                          final currentDoc = snapshot.data?.docs;
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: currentDoc!.length,
+                            itemBuilder: (context, index) {
+                              if (_auth.currentUser!.uid !=
+                                  currentDoc[index]["id"]) {
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (ctx) => ChatPage(
+                                            userName: currentDoc[index]
+                                                ["firstName"],
+                                            receiverId: currentDoc[index]["id"],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: SizedBox(
+                                      height: 70,
+                                      // User display
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const CircleAvatar(
+                                            radius: 30,
+                                            backgroundImage: AssetImage(
+                                                'assets/images/profile.png'),
+                                            backgroundColor: Colors.blue,
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 0),
+                                            child: SizedBox(
+                                              width: 200,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    currentDoc[index]
+                                                        ["firstName"],
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    currentDoc[index]["email"],
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+>>>>>>> dev_branch
                                       ),
                                     ),
                                   );

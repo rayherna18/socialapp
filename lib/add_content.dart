@@ -5,6 +5,21 @@ import 'package:socialapp/nav_bar.dart';
 import 'package:socialapp/profilePage.dart';
 import 'view_post.dart';
 import 'home_feed.dart';
+<<<<<<< HEAD
+=======
+import 'user_profile.dart';
+
+Map<String, dynamic> userData = {
+  // Replace with Firebase Auth user data
+  'firstName': 'Raymond',
+  'lastName': 'Hernandez',
+  'handle': 'rayherna01',
+  'pfpURL':
+      'https://i.pinimg.com/originals/77/81/dd/7781dde14911b9440dc865b94aba0af1.jpg',
+  'email': 'raymondhr12@gmail.com',
+  'id': '9q79mUimSSYMB6TaXsBgQUapJUv2',
+};
+>>>>>>> dev_branch
 
 class AddContentScreen extends StatefulWidget {
   final SocialMediaPost? post;

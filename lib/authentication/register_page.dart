@@ -41,6 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (passwordController.text == confirmPasswordController.text) {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
             email: emailController.text, password: passwordController.text);
+<<<<<<< HEAD:lib/authentication/register_page.dart
         String userId = FirebaseAuth.instance.currentUser!.uid;
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'email': emailController.text,
@@ -52,6 +53,15 @@ class _RegisterPageState extends State<RegisterPage> {
           'postList': [],
           'followingList': [],
         });
+=======
+        await _db.collection("users").doc(_auth.currentUser!.uid).set({
+          "firstName": firstnameController.text,
+          "lastName": lastnameController.text,
+          "email": emailController.text,
+          "password": passwordController.text,
+          "id": _auth.currentUser!.uid,
+        }, SetOptions(merge: true));
+>>>>>>> dev_branch:lib/login/pages/register_page.dart
       } else {
         // show error message, passwords do not match
         showErrorMessage("Passwords don't match");
