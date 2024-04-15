@@ -26,6 +26,7 @@ class _UserProfileState extends State<UserProfile> {
   bool isLoading = true;
   late List<dynamic> postList = [];
   late List<dynamic> likedList = [];
+  late String currentUserId;
 
   //TextEditingController for bio text field
   final TextEditingController bioController = TextEditingController();
@@ -39,6 +40,7 @@ class _UserProfileState extends State<UserProfile> {
   @override
   void initState() {
     super.initState();
+    currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     getUserData();
 
     bioController.addListener(() {
@@ -75,9 +77,15 @@ class _UserProfileState extends State<UserProfile> {
               ? List<String>.from(userData['postList'])
               : [];
           isLoading = false;
+
           //bio content below
           bio = userData['bio'] ?? '';
           bioController.text = bio; //sets initial value for the biocontroller!
+          bioController.addListener(() {
+            if (widget.userID == currentUserId) {
+              updateBio(bioController.text);
+            }
+          });
         });
       } else {
         print('Document does not exist on the database');
@@ -338,14 +346,19 @@ class _UserProfileState extends State<UserProfile> {
                           child: TextField(
                             controller:
                                 bioController, //using the bioController for the bio field!
+                            readOnly: widget.userID !=
+                                currentUserId, //disables option to edit the bio of another user that is not the currently logged in user
+                            // ignore: prefer_const_constructors
                             decoration: InputDecoration(
+                              // ignore: prefer_const_constructors
                               border: OutlineInputBorder(),
                               labelText: 'Bio Info',
                               // Try reducing or removing padding to see if it affects visibility
+                              // ignore: prefer_const_constructors
                               contentPadding: EdgeInsets.symmetric(
                                   vertical: 12.0, horizontal: 10.0),
                             ),
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.black), // Ensure black text
                             maxLines: null, // Flexible vertical expansion
