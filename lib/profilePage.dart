@@ -27,6 +27,7 @@ class _UserProfileState extends State<UserProfile> {
   late List<dynamic> postList = [];
   late List<dynamic> likedList = [];
   late String currentUserId;
+  late String currentPfpURL;
 
   //TextEditingController for bio text field
   final TextEditingController bioController = TextEditingController();
@@ -42,7 +43,7 @@ class _UserProfileState extends State<UserProfile> {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     getUserData();
-
+    getCurrentUserData();
     bioController.addListener(() {
       updateBio(bioController.text);
     });
@@ -91,6 +92,22 @@ class _UserProfileState extends State<UserProfile> {
         print('Document does not exist on the database');
       }
     });
+  }
+
+  void getCurrentUserData() async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserId)
+        .get();
+
+    if (userDoc.exists) {
+      final currentUserData = userDoc.data() as Map<String, dynamic>;
+      setState(() {
+        currentPfpURL = currentUserData['pfpURL'];
+      });
+    } else {
+      print('Document does not exist on the database');
+    }
   }
 
   //method for updating bio below!
@@ -281,7 +298,7 @@ class _UserProfileState extends State<UserProfile> {
     }
     return Scaffold(
       appBar: centralAppBarTabs(context, ("$firstName $lastName"),
-          pfpURL), //centralAppBar(context, 'Profile', pfpURL
+          currentPfpURL), //centralAppBar(context, 'Profile', pfpURL
       // ignore: prefer_const_constructors
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: 1,

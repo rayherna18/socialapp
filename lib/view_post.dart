@@ -194,6 +194,7 @@ class SocialMediaPostScreen extends StatefulWidget {
 
 class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
   late bool isPostLiked;
+  late String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
   Icon unLikedIcon = const Icon(Icons.star_border_rounded);
   Icon likedIcon = const Icon(Icons.star, color: Colors.yellow);
   String userID = FirebaseAuth.instance.currentUser!.uid;
