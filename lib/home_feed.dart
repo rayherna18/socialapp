@@ -600,8 +600,8 @@ class _HomeFeedState extends State<HomeFeedScreen> {
 }
 
 AppBar centralAppBarTabs(BuildContext context, String title, String pfpURL) {
-  final user = FirebaseAuth.instance.currentUser!;
-  final userID = user.uid;
+  // final user = FirebaseAuth.instance.currentUser!;
+  // final userID = user.uid;
 
   return AppBar(
     title: Text(title),
@@ -613,7 +613,8 @@ AppBar centralAppBarTabs(BuildContext context, String title, String pfpURL) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfile(userID: userID),
+              builder: (context) =>
+                  UserProfile(userID: FirebaseAuth.instance.currentUser!.uid),
             ),
           );
         },
@@ -638,6 +639,8 @@ AppBar centralAppBarTabs(BuildContext context, String title, String pfpURL) {
 
 AppBar centralAppBar(BuildContext context, String title, String pfpURL) {
   final user = FirebaseAuth.instance.currentUser!;
+  final String currentUserPfpURL =
+      FirebaseAuth.instance.currentUser?.photoURL ?? '';
   final userID = user.uid;
 
   return AppBar(
@@ -649,12 +652,14 @@ AppBar centralAppBar(BuildContext context, String title, String pfpURL) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => UserProfile(userID: userID),
+              builder: (context) => UserProfile(
+                userID: FirebaseAuth.instance.currentUser!.uid,
+              ),
             ),
           );
         },
         child: CircleAvatar(
-          backgroundImage: NetworkImage(pfpURL),
+          backgroundImage: NetworkImage(currentUserPfpURL),
           backgroundColor: Colors.grey.shade200, // Fallback color
         ),
       ),
