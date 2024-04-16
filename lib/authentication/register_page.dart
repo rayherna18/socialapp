@@ -46,9 +46,13 @@ class _RegisterPageState extends State<RegisterPage> {
         await _db.collection("users").doc(_auth.currentUser!.uid).set({
           "firstName": firstNameController.text,
           "lastName": lastNameController.text,
+          'handle': handleController.text,
           "email": emailController.text,
           "password": passwordController.text,
           "id": _auth.currentUser!.uid,
+          'pfpURL': pfpURLController.text,
+          'likedList': [],
+          'postList': [],
         }, SetOptions(merge: true));
       } else {
         // show error message, passwords do not match

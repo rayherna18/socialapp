@@ -79,8 +79,18 @@ class _UserProfileState extends State<UserProfile> {
               : [];
           isLoading = false;
 
-          //bio content below
-          bio = userData['bio'] ?? '';
+          // Check if 'bio' exists, if not, initialize it as empty string
+          if (userData.containsKey('bio')) {
+            bio = userData['bio'];
+          } else {
+            bio = '';
+            // Update Firestore to add 'bio' field with empty string
+            FirebaseFirestore.instance
+                .collection('users')
+                .doc(widget.userID)
+                .update({'bio': ''});
+          }
+
           bioController.text = bio; //sets initial value for the biocontroller!
           bioController.addListener(() {
             if (widget.userID == currentUserId) {
