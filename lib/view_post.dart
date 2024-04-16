@@ -134,6 +134,7 @@ class _CommentTileState extends State<CommentTile> {
             ],
           ),
         ),
+        /*
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -169,7 +170,9 @@ class _CommentTileState extends State<CommentTile> {
               ],
             ),
           ],
-        ),
+          
+        ),*/
+        SizedBox(height: 24.0),
         const Divider(thickness: 1.0, color: Colors.grey),
       ],
     );
