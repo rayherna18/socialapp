@@ -317,6 +317,13 @@ class _UserProfileState extends State<UserProfile> {
                 builder: (context) => const DirectMessagesScreen(),
               ),
             );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CustomSettings(),
+              ),
+            );
           }
         },
       ),

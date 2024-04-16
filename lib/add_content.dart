@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp/nav_bar.dart';
 import 'package:socialapp/profilePage.dart';
+import 'package:socialapp/settings.dart';
 import 'view_post.dart';
 import 'home_feed.dart';
 
@@ -91,6 +92,13 @@ class _AddContentScreenState extends State<AddContentScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => const HomeFeedScreen(),
+              ),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CustomSettings(),
               ),
             );
           }

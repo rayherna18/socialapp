@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:socialapp/nav_bar.dart';
 import 'package:socialapp/profilePage.dart';
+import 'package:socialapp/settings.dart';
 import 'home_feed.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -133,6 +134,7 @@ class _CommentTileState extends State<CommentTile> {
             ],
           ),
         ),
+        /*
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -168,7 +170,9 @@ class _CommentTileState extends State<CommentTile> {
               ],
             ),
           ],
-        ),
+          
+        ),*/
+        SizedBox(height: 24.0),
         const Divider(thickness: 1.0, color: Colors.grey),
       ],
     );
@@ -314,6 +318,13 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                 builder: (context) => const HomeFeedScreen(),
               ),
             );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CustomSettings(),
+              ),
+            );
           }
         },
       ),
@@ -363,17 +374,28 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (widget.post.postContent.isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: widget.post.postImageUrl.isEmpty
-                                    ? const SizedBox.shrink()
-                                    : Image.network(widget.post.postImageUrl,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover),
-                              ),
                             const SizedBox(height: 8.0),
-                            Text(widget.post.postContent),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: widget.post.postImageUrl.isEmpty
+                                  ? const SizedBox.shrink()
+                                  : Image.network(
+                                      widget.post.postImageUrl,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        // Handle the error here
+                                        print('Image loading error: $error');
+                                        return const SizedBox
+                                            .shrink(); // or display a placeholder image
+                                      },
+                                    ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(5, 15, 5, 0),
+                              child: Text(widget.post.postContent),
+                            ),
                             const SizedBox(height: 8.0),
                           ],
                         ),

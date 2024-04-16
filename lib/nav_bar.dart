@@ -14,6 +14,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
+      type: BottomNavigationBarType.fixed,
       onTap: onTap,
       items: [
         BottomNavigationBarItem(
@@ -28,6 +29,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           icon: Icon(Icons.message),
           label: 'DMs',
         ),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Setting"),
       ],
     );
   }
