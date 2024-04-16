@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:socialapp/message/pages/chat_screen.dart';
 import 'package:socialapp/message/widgets/loading_widget.dart';
 import 'package:socialapp/profilePage.dart';
+import 'package:socialapp/settings.dart';
 import 'nav_bar.dart';
 import 'home_feed.dart';
 
@@ -66,6 +67,13 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => const HomeFeedScreen(),
+              ),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CustomSettings(),
               ),
             );
           }
