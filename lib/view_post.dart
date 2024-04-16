@@ -374,17 +374,28 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (widget.post.postContent.isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10.0),
-                                child: widget.post.postImageUrl.isEmpty
-                                    ? const SizedBox.shrink()
-                                    : Image.network(widget.post.postImageUrl,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover),
-                              ),
                             const SizedBox(height: 8.0),
-                            Text(widget.post.postContent),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: widget.post.postImageUrl.isEmpty
+                                  ? const SizedBox.shrink()
+                                  : Image.network(
+                                      widget.post.postImageUrl,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        // Handle the error here
+                                        print('Image loading error: $error');
+                                        return const SizedBox
+                                            .shrink(); // or display a placeholder image
+                                      },
+                                    ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(5, 15, 5, 0),
+                              child: Text(widget.post.postContent),
+                            ),
                             const SizedBox(height: 8.0),
                           ],
                         ),
