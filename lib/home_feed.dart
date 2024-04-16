@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:socialapp/add_content.dart';
 import 'package:socialapp/authentication/auth_page.dart';
 import 'package:socialapp/direct_messages.dart';
+import 'package:socialapp/settings.dart';
 import 'profilePage.dart';
 import 'view_post.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -493,6 +494,13 @@ class _HomeFeedState extends State<HomeFeedScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const DirectMessagesScreen(),
+                  ),
+                );
+              } else if (index == 3) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CustomSettings(),
                   ),
                 );
               }

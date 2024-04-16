@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:socialapp/nav_bar.dart';
 import 'package:socialapp/profilePage.dart';
+import 'package:socialapp/settings.dart';
 import 'home_feed.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -312,6 +313,13 @@ class _SocialMediaPostScreenState extends State<SocialMediaPostScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => const HomeFeedScreen(),
+              ),
+            );
+          } else if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CustomSettings(),
               ),
             );
           }
