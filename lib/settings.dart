@@ -1,11 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
+import 'package:provider/provider.dart';
 import 'package:socialapp/direct_messages.dart';
 import 'package:socialapp/home_feed.dart';
 import 'package:socialapp/message/widgets/loading_widget.dart';
 import 'package:socialapp/nav_bar.dart';
 import 'package:socialapp/profilePage.dart';
+import 'package:socialapp/settingsPages/changeF.dart';
+import 'package:socialapp/settingsPages/changeL.dart';
+import 'package:socialapp/settingsPages/changeName.dart';
+import 'package:socialapp/settingsPages/changeP.dart';
+import 'package:socialapp/settingsPages/changeUser.dart';
+import 'package:socialapp/theme/themePro.dart';
 
 class CustomSettings extends StatefulWidget {
   const CustomSettings({super.key});
@@ -116,52 +123,71 @@ class _SettingsState extends State<CustomSettings> {
                           width: 330,
                           child: Row(
                             children: [
-                              Text("Change Username"),
-                              Spacer(
-                                flex: 1,
-                              ),
-                              ElevatedButton(
-                                  onPressed: () {}, child: Text("yuh"))
-                            ],
-                          ),
-                        ),
-                        Spacer(
-                          flex: 1,
-                        ),
-                        Container(
-                          height: 50,
-                          width: 330,
-                          child: Row(
-                            children: [
-                              Text("Change First/Last Name"),
-                              Spacer(
-                                flex: 1,
-                              ),
-                              ElevatedButton(
-                                  onPressed: () {}, child: Text("yuh"))
-                            ],
-                          ),
-                          decoration: BoxDecoration(
-                              color: Colors.grey.shade600,
-                              borderRadius: BorderRadius.circular(15)),
-                        ),
-                        Spacer(
-                          flex: 1,
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                              color: Colors.grey.shade600,
-                              borderRadius: BorderRadius.circular(15)),
-                          height: 50,
-                          width: 330,
-                          child: Row(
-                            children: [
                               Text("Change Email"),
                               Spacer(
                                 flex: 1,
                               ),
                               ElevatedButton(
-                                  onPressed: () {}, child: Text("yuh"))
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                chanegUser()));
+                                  },
+                                  child: Text("Change"))
+                            ],
+                          ),
+                        ),
+                        Spacer(
+                          flex: 1,
+                        ),
+                        Container(
+                          height: 50,
+                          width: 330,
+                          child: Row(
+                            children: [
+                              Text("Change First Name"),
+                              Spacer(
+                                flex: 1,
+                              ),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => changeF()));
+                                  },
+                                  child: Text("Change"))
+                            ],
+                          ),
+                          decoration: BoxDecoration(
+                              color: Colors.grey.shade600,
+                              borderRadius: BorderRadius.circular(15)),
+                        ),
+                        Spacer(
+                          flex: 1,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.grey.shade600,
+                              borderRadius: BorderRadius.circular(15)),
+                          height: 50,
+                          width: 330,
+                          child: Row(
+                            children: [
+                              Text("Change Last Name"),
+                              Spacer(
+                                flex: 1,
+                              ),
+                              ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => changeL()));
+                                  },
+                                  child: Text("Change"))
                             ],
                           ),
                         ),
@@ -181,7 +207,13 @@ class _SettingsState extends State<CustomSettings> {
                                 flex: 1,
                               ),
                               ElevatedButton(
-                                  onPressed: () {}, child: Text("yuh"))
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => changeP()));
+                                  },
+                                  child: Text("Change"))
                             ],
                           ),
                         ),
@@ -196,12 +228,19 @@ class _SettingsState extends State<CustomSettings> {
                           width: 330,
                           child: Row(
                             children: [
-                              Text("Change Birthdate"),
+                              Text("Change UserName"),
                               Spacer(
                                 flex: 1,
                               ),
                               ElevatedButton(
-                                  onPressed: () {}, child: Text("yuh"))
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                chanegName()));
+                                  },
+                                  child: Text("Change"))
                             ],
                           ),
                         ),
@@ -263,6 +302,9 @@ class _SettingsState extends State<CustomSettings> {
                                     width: 60,
                                     value: status,
                                     onToggle: (val) {
+                                      Provider.of<Themeprovider>(context,
+                                              listen: false)
+                                          .toggle();
                                       setState(() {
                                         status = val;
                                       });

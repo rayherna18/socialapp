@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:socialapp/authentication/auth_page.dart';
 import 'package:socialapp/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:socialapp/theme/theme.dart';
+import 'package:socialapp/theme/themePro.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,7 +13,10 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    runApp(const MyApp());
+    runApp(ChangeNotifierProvider(
+      create: (context) => Themeprovider(),
+      child: const MyApp(),
+    ));
   } catch (e) {
     print('Error: $e');
   }
@@ -25,10 +31,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Social Media App Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: Provider.of<Themeprovider>(context).themeData,
       home: const AuthPage(),
     );
   }
