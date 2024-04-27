@@ -53,6 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
           'pfpURL': pfpURLController.text,
           'likedList': [],
           'postList': [],
+        });
       } else {
         // show error message, passwords do not match
         showErrorMessage("Passwords don't match");
